@@ -1,0 +1,8 @@
+// Copy this file to ShippingConfiguration.xcconfig.
+// Never commit service-role keys, Apple .p8 keys, or Google client secrets.
+
+OVERPAR_SUPABASE_URL = https:/$()/YOUR_PROJECT_REF.supabase.co
+OVERPAR_SUPABASE_PUBLISHABLE_KEY = sb_publishable_REPLACE_ME
+OVERPAR_GOOGLE_IOS_CLIENT_ID = REPLACE_ME.apps.googleusercontent.com
+OVERPAR_BUNDLE_IDENTIFIER = com.zacwhittaker.overpar
+DEVELOPMENT_TEAM = REPLACE_WITH_APPLE_TEAM_ID

@@ -1,0 +1,9 @@
+.DS_Store
+DerivedData/
+*.xcuserstate
+xcuserdata/
+OverPar/ShippingConfiguration.xcconfig
+Supabase.local.swift
+GoogleService-Info.plist
+*.p8
+xcuserdata/
