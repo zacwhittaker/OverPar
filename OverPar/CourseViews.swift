@@ -456,7 +456,7 @@ struct CourseOverviewView: View {
                 Divider().frame(height: 42)
                 metric("\(course.roundTotalPar)", "Par")
                 Divider().frame(height: 42)
-                metric("R\(course.currentRevision.revisionNumber)", "Revision")
+                metric("\(course.holeCount)", "Mapped Holes")
             }
 
             HStack(spacing: 10) {
@@ -484,9 +484,9 @@ struct CourseOverviewView: View {
                     } else {
                         Image(systemName: "arrow.triangle.2.circlepath")
                     }
-                    Text(isUpdatingTerrain ? "Updating terrain…" : "Update terrain")
+                    Text(isUpdatingTerrain ? "Updating Terrain…" : "Update Terrain")
                     Spacer()
-                    Text("Tee to green")
+                    Text("Tee to Green")
                         .font(.caption)
                         .foregroundStyle(OverParTheme.secondary)
                 }
@@ -503,9 +503,9 @@ struct CourseOverviewView: View {
                 if !course.city.isEmpty { detailRow("Location", value: course.city) }
                 if !course.postcode.isEmpty { detailRow("Postcode", value: course.postcode) }
                 detailRow("Layout", value: course.repeatsLayout
-                          ? "\(course.holeCount) mapped holes · \(course.loopCount) loops"
-                          : "\(course.holeCount)-hole course")
-                detailRow("Created by", value: "@\(course.creatorUsername ?? (course.canCurrentUserEdit ? store.profile.username : "community"))")
+                          ? "\(course.holeCount) Mapped Holes · \(course.loopCount) Loops"
+                          : "\(course.holeCount)-Hole Course")
+                detailRow("Created By", value: "@\(course.creatorUsername ?? (course.canCurrentUserEdit ? store.profile.username : "community"))")
             }
 
             VStack(alignment: .leading, spacing: 12) {
@@ -552,7 +552,11 @@ struct CourseOverviewView: View {
 
     private func metric(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(label).font(.caption).foregroundStyle(OverParTheme.secondary)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(OverParTheme.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
             Text(value).font(.system(.title2, design: .rounded, weight: .heavy)).monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
