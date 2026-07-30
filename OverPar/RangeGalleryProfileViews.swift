@@ -39,7 +39,7 @@ struct ResearchDrivingRangeView: View {
                         .padding(.top, 24)
                     HStack(alignment: .bottom) {
                         VStack(alignment: .leading, spacing: 0) {
-                            Text(club.iconLabel.lowercased())
+                            Text(club.iconLabel)
                                 .font(.system(size: 78, weight: .heavy, design: .rounded))
                                 .foregroundStyle(OverParTheme.forest)
                             Text(club.showsNickname ? "\(club.name)  ·  \(club.displayName)" : club.name)
