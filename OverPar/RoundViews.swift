@@ -204,12 +204,13 @@ struct ActiveRoundView: View {
             }
             Spacer()
             if round.manualPlayerLocation != nil {
-                Label("Manual", systemImage: "hand.tap.fill")
+                Label("Position · Manual", systemImage: "mappin.and.ellipse")
                     .font(.system(.caption2, design: .rounded, weight: .bold))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(OverParTheme.forestDark)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
-                    .background(.white, in: Capsule())
+                    .background(OverParTheme.mint.opacity(0.92), in: Capsule())
+                    .overlay(Capsule().stroke(Color.white.opacity(0.55), lineWidth: 0.8))
             } else {
                 StatusPill(
                     text: location.location.map { "GPS ±\(Int($0.horizontalAccuracy)) m" } ?? "GPS settling",
@@ -1141,7 +1142,6 @@ struct ShotResultSheet: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var store: AppStore
     @State var shot: LoggedShot
-    @State private var showProfessional = false
     @State private var showPenalty = false
     @State private var showClubPicker = false
 
@@ -1222,49 +1222,36 @@ struct ShotResultSheet: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
-                    VStack(spacing: 0) {
-                        Button {
-                            withAnimation(.spring(response: 0.34, dampingFraction: 0.86)) {
-                                showProfessional.toggle()
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "chart.xyaxis.line")
+                                .foregroundStyle(OverParTheme.forest)
+                                .frame(width: 40, height: 40)
+                                .background(OverParTheme.mint, in: Circle())
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Shot detail")
+                                    .font(.headline)
+                                Text("Optional")
+                                    .font(.caption)
+                                    .foregroundStyle(OverParTheme.secondary)
                             }
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: "chart.xyaxis.line")
-                                    .frame(width: 40, height: 40)
-                                    .background(OverParTheme.mint, in: Circle())
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Add shot shape & strike")
-                                        .font(.headline)
-                                    Text("Optional golf detail")
-                                        .font(.caption)
-                                        .foregroundStyle(OverParTheme.secondary)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.down")
-                                    .rotationEffect(.degrees(showProfessional ? 180 : 0))
-                            }
-                            .foregroundStyle(OverParTheme.ink)
-                            .padding(16)
                         }
-                        .buttonStyle(.plain)
+                        .padding(16)
 
-                        if showProfessional {
-                            Divider().padding(.horizontal, 16)
-                            VStack(alignment: .leading, spacing: 18) {
-                                detailChoices(
-                                    title: "Ball flight",
-                                    values: BallFlight.allCases,
-                                    selection: $shot.ballFlight
-                                )
-                                detailChoices(
-                                    title: "Strike",
-                                    values: StrikeQuality.allCases,
-                                    selection: $shot.strike
-                                )
-                            }
-                            .padding(16)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                        }
+                        Divider().padding(.leading, 68)
+                        detailMenu(
+                            title: "Ball flight",
+                            symbol: "arrow.up.and.down.and.arrow.left.and.right",
+                            values: BallFlight.allCases,
+                            selection: $shot.ballFlight
+                        )
+                        Divider().padding(.leading, 68)
+                        detailMenu(
+                            title: "Strike",
+                            symbol: "circle.hexagongrid.fill",
+                            values: StrikeQuality.allCases,
+                            selection: $shot.strike
+                        )
                     }
                     .background(.white, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 22).stroke(OverParTheme.line))
@@ -1441,31 +1428,53 @@ struct ShotResultSheet: View {
         value == .outOfBounds ? "Lost / OB" : value.rawValue
     }
 
-    private func detailChoices<T: RawRepresentable & CaseIterable & Identifiable & Hashable>(
+    private func detailMenu<T: RawRepresentable & CaseIterable & Identifiable & Hashable>(
         title: String,
+        symbol: String,
         values: T.AllCases,
         selection: Binding<T?>
     ) -> some View where T.RawValue == String, T.AllCases: RandomAccessCollection {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.subheadline.bold())
-            FlowLayout {
-                ForEach(Array(values)) { value in
-                    let selected = selection.wrappedValue == value
-                    Button {
-                        selection.wrappedValue = selected ? nil : value
-                    } label: {
+        Menu {
+            Button {
+                selection.wrappedValue = nil
+            } label: {
+                Label("Not added", systemImage: selection.wrappedValue == nil ? "checkmark" : "minus")
+            }
+            Divider()
+            ForEach(Array(values)) { value in
+                Button {
+                    selection.wrappedValue = value
+                    UISelectionFeedbackGenerator().selectionChanged()
+                } label: {
+                    if selection.wrappedValue == value {
+                        Label(value.rawValue, systemImage: "checkmark")
+                    } else {
                         Text(value.rawValue)
-                            .font(.subheadline.bold())
-                            .foregroundStyle(selected ? .white : OverParTheme.ink)
-                            .padding(.horizontal, 13)
-                            .padding(.vertical, 10)
-                            .background(selected ? OverParTheme.forest : OverParTheme.canvas, in: Capsule())
-                            .overlay(Capsule().stroke(selected ? OverParTheme.forest : OverParTheme.line))
                     }
-                    .buttonStyle(.plain)
                 }
             }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: symbol)
+                    .foregroundStyle(OverParTheme.forest)
+                    .frame(width: 40)
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Text(selection.wrappedValue?.rawValue ?? "Not added")
+                    .font(.subheadline)
+                    .foregroundStyle(selection.wrappedValue == nil ? OverParTheme.secondary : OverParTheme.forest)
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2.bold())
+                    .foregroundStyle(OverParTheme.tertiary)
+            }
+            .foregroundStyle(OverParTheme.ink)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 56)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 
     private func save() {

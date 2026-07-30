@@ -1,6 +1,28 @@
 import SwiftUI
 import UIKit
 
+struct CourseCoverImage: View {
+    @EnvironmentObject private var store: AppStore
+    let course: GolfCourse?
+
+    var body: some View {
+        Group {
+            if let course,
+               let data = store.courseCoverData(for: course),
+               let image = UIImage(data: data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image("CourseMorning")
+                    .resizable()
+                    .scaledToFill()
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
 enum OverParTheme {
     // MARK: Semantic colour
     static let forest = Color(light: 0x0B4A36, dark: 0x71D5A8)

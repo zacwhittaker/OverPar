@@ -79,8 +79,16 @@ final class AppStore: ObservableObject {
 
     var activeBag: [GolfClub] { clubs.filter(\.isActive) }
 
-    func publishCourse(name: String, facility: String, city: String, postcode: String, holes: [Hole], loopCount: Int = 1) {
-        let course = GolfCourse(
+    func publishCourse(
+        name: String,
+        facility: String,
+        city: String,
+        postcode: String,
+        holes: [Hole],
+        loopCount: Int = 1,
+        coverPhotoData: Data? = nil
+    ) {
+        var course = GolfCourse(
             name: name,
             facilityName: facility.isEmpty ? name : facility,
             city: city,
@@ -88,9 +96,63 @@ final class AppStore: ObservableObject {
             isVerified: false,
             isSaved: true,
             currentRevision: CourseRevision(revisionNumber: 1, holes: holes),
-            defaultLoopCount: loopCount
+            defaultLoopCount: loopCount,
+            createdByCurrentUser: true
         )
+        course.coverPhotoFilename = saveCourseCover(coverPhotoData, courseID: course.id)
         courses.append(course)
+    }
+
+    func updateCourse(
+        courseID: UUID,
+        name: String,
+        facility: String,
+        city: String,
+        postcode: String,
+        holes: [Hole],
+        loopCount: Int,
+        coverPhotoData: Data?
+    ) {
+        guard let index = courses.firstIndex(where: { $0.id == courseID }),
+              courses[index].canCurrentUserEdit
+        else { return }
+        var course = courses[index]
+        course.name = name
+        course.facilityName = facility.isEmpty ? name : facility
+        course.city = city
+        course.postcode = postcode
+        course.defaultLoopCount = loopCount
+        course.createdByCurrentUser = true
+        course.currentRevision = CourseRevision(
+            revisionNumber: course.currentRevision.revisionNumber + 1,
+            holes: holes
+        )
+        if let coverPhotoData {
+            course.coverPhotoFilename = saveCourseCover(coverPhotoData, courseID: course.id)
+        }
+        courses[index] = course
+    }
+
+    func courseCoverData(for course: GolfCourse) -> Data? {
+        guard let filename = course.coverPhotoFilename else { return nil }
+        return try? Data(contentsOf: courseCoverDirectory.appendingPathComponent(filename))
+    }
+
+    private var courseCoverDirectory: URL {
+        let directory = saveURL.deletingLastPathComponent().appendingPathComponent("CourseCovers", isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
+    private func saveCourseCover(_ data: Data?, courseID: UUID) -> String? {
+        guard let data else { return nil }
+        let filename = "\(courseID.uuidString).jpg"
+        do {
+            try data.write(to: courseCoverDirectory.appendingPathComponent(filename), options: .atomic)
+            return filename
+        } catch {
+            return nil
+        }
     }
 
     @discardableResult

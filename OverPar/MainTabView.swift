@@ -32,9 +32,7 @@ struct ResearchHomeView: View {
 
     private var hero: some View {
         ZStack(alignment: .bottomLeading) {
-            Image("CourseMorning")
-                .resizable()
-                .scaledToFill()
+            CourseCoverImage(course: course)
                 .frame(height: 520)
                 .clipped()
             LinearGradient(
@@ -134,7 +132,7 @@ struct ResearchHomeView: View {
                 .foregroundStyle(OverParTheme.forest)
             if let round = store.completedRounds.last {
                 HStack(spacing: 13) {
-                    Image("CourseMorning").resizable().scaledToFill()
+                    CourseCoverImage(course: store.courses.first(where: { $0.id == round.courseID }))
                         .frame(width: 48, height: 48).clipShape(Circle())
                     VStack(alignment: .leading, spacing: 3) {
                         Text(round.courseName).font(.headline)
@@ -313,9 +311,7 @@ struct HomeView: View {
                                 CoursePreviewView(course: course)
                             } label: {
                                 HStack(spacing: 12) {
-                                    Image("CourseMorning")
-                                        .resizable()
-                                        .scaledToFill()
+                                    CourseCoverImage(course: course)
                                         .frame(width: 64, height: 54)
                                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                     VStack(alignment: .leading, spacing: 3) {
@@ -360,9 +356,7 @@ struct HomeView: View {
 
     private var homeHero: some View {
         ZStack(alignment: .bottomLeading) {
-            Image("CourseMorning")
-                .resizable()
-                .scaledToFill()
+            CourseCoverImage(course: nearest)
                 .frame(height: 318)
             LinearGradient(
                 colors: [.clear, .black.opacity(0.12), .black.opacity(0.78)],

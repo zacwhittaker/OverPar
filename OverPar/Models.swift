@@ -57,6 +57,8 @@ struct GolfCourse: Codable, Identifiable, Hashable {
     var isSaved: Bool
     var currentRevision: CourseRevision
     var defaultLoopCount: Int? = nil
+    var coverPhotoFilename: String? = nil
+    var createdByCurrentUser: Bool? = nil
 
     var holeCount: Int { currentRevision.holes.count }
     var totalPar: Int { currentRevision.holes.reduce(0) { $0 + $1.par } }
@@ -64,6 +66,7 @@ struct GolfCourse: Codable, Identifiable, Hashable {
     var roundHoleCount: Int { holeCount * loopCount }
     var roundTotalPar: Int { totalPar * loopCount }
     var repeatsLayout: Bool { loopCount > 1 }
+    var canCurrentUserEdit: Bool { createdByCurrentUser ?? !isVerified }
 
     func hole(forRoundHole number: Int) -> Hole? {
         guard holeCount > 0, (1...roundHoleCount).contains(number) else { return nil }
