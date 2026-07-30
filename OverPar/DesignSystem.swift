@@ -142,6 +142,7 @@ struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(.headline, design: .rounded, weight: .bold))
+            .padding(.horizontal, 20)
             .frame(maxWidth: .infinity, minHeight: 54)
             .foregroundStyle(OverParTheme.forest)
             .background(OverParTheme.mint, in: RoundedRectangle(cornerRadius: OverParTheme.Radius.control, style: .continuous))

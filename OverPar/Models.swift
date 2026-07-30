@@ -69,8 +69,9 @@ struct GolfCourse: Codable, Identifiable, Hashable {
     var repeatsLayout: Bool { loopCount > 1 }
     var canCurrentUserEdit: Bool { createdByCurrentUser ?? !isVerified }
 
-    func hole(forRoundHole number: Int) -> Hole? {
-        guard holeCount > 0, (1...roundHoleCount).contains(number) else { return nil }
+    func hole(forRoundHole number: Int, loopCount: Int? = nil) -> Hole? {
+        let availableHoles = holeCount * max(1, min(loopCount ?? self.loopCount, 3))
+        guard holeCount > 0, (1...availableHoles).contains(number) else { return nil }
         return currentRevision.holes[(number - 1) % holeCount]
     }
 
@@ -284,11 +285,19 @@ struct ActiveRound: Codable, Identifiable {
     var courseRevisionID: UUID
     var format: RoundFormat
     var rulesCompliant: Bool
+    var selectedLoopCount: Int?
     var holeNumber = 1
     var scores: [Int: Int] = [:]
     var shots: [Int: [LoggedShot]] = [:]
     var manualPlayerLocation: Coordinate?
     var startedAt = Date()
+
+    func loopCount(for course: GolfCourse) -> Int {
+        max(1, min(selectedLoopCount ?? course.loopCount, 3))
+    }
+    func totalHoleCount(for course: GolfCourse) -> Int {
+        course.holeCount * loopCount(for: course)
+    }
 }
 
 struct CompletedRound: Codable, Identifiable {
@@ -299,6 +308,7 @@ struct CompletedRound: Codable, Identifiable {
     var format: RoundFormat
     var scores: [Int: Int]
     var shots: [Int: [LoggedShot]]
+    var selectedLoopCount: Int?
     var startedAt: Date
     var endedAt = Date()
 

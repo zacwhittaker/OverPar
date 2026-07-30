@@ -485,7 +485,7 @@ private struct ResumeRoundPrompt: View {
                     .font(.system(.title2, design: .rounded, weight: .heavy))
                 if let round = store.activeRound,
                    let course = store.courses.first(where: { $0.id == round.courseID }) {
-                    Text("\(course.name) · Hole \(round.holeNumber) of \(course.roundHoleCount)")
+                    Text("\(course.name) · Hole \(round.holeNumber) of \(round.totalHoleCount(for: course))")
                         .foregroundStyle(OverParTheme.secondary)
                 }
                 Text("Everything is safely saved on this phone.")
@@ -524,7 +524,7 @@ private struct ResumeRoundCard: View {
                 Text(course.name)
                     .font(.system(.headline, design: .rounded, weight: .heavy))
                     .lineLimit(1)
-                Text("Hole \(round.holeNumber) of \(course.roundHoleCount)")
+                Text("Hole \(round.holeNumber) of \(round.totalHoleCount(for: course))")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.82))
             }

@@ -198,12 +198,13 @@ final class AppStore: ObservableObject {
         return course
     }
 
-    func startRound(course: GolfCourse, format: RoundFormat, rulesCompliant: Bool) {
+    func startRound(course: GolfCourse, format: RoundFormat, rulesCompliant: Bool, loopCount: Int) {
         activeRound = ActiveRound(
             courseID: course.id,
             courseRevisionID: course.currentRevision.id,
             format: format,
-            rulesCompliant: rulesCompliant
+            rulesCompliant: rulesCompliant,
+            selectedLoopCount: loopCount
         )
     }
 
@@ -221,6 +222,7 @@ final class AppStore: ObservableObject {
             format: round.format,
             scores: round.scores,
             shots: round.shots,
+            selectedLoopCount: round.selectedLoopCount,
             startedAt: round.startedAt
         )
         completedRounds.append(completed)

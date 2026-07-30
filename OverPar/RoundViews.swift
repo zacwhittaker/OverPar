@@ -11,6 +11,15 @@ struct RoundSetupView: View {
     @State private var format: RoundFormat = .strokePlay
     @State private var rulesCompliant = false
     @State private var hasStarted = false
+    @State private var selectedLoopCount: Int
+
+    init(course: GolfCourse) {
+        self.course = course
+        _selectedLoopCount = State(initialValue: course.loopCount)
+    }
+
+    private var selectedHoleCount: Int { course.holeCount * selectedLoopCount }
+    private var selectedPar: Int { course.totalPar * selectedLoopCount }
 
     var body: some View {
         Form {
@@ -21,10 +30,24 @@ struct RoundSetupView: View {
                         .foregroundStyle(OverParTheme.forest)
                     Text("Set up your round.")
                         .font(.system(.largeTitle, design: .rounded, weight: .heavy))
-                    Text("\(course.name) · \(course.roundHoleCount) holes · Par \(course.roundTotalPar)")
+                    Text("\(course.name) · \(selectedHoleCount) holes · Par \(selectedPar)")
                         .foregroundStyle(OverParTheme.secondary)
                 }
                 .padding(.vertical, 8)
+            }
+            if course.holeCount == 9 {
+                Section {
+                    Picker("Loops", selection: $selectedLoopCount) {
+                        ForEach(1...3, id: \.self) { loops in
+                            Text("\(loops) · \(course.holeCount * loops) holes").tag(loops)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                } header: {
+                    Text("How many loops?")
+                } footer: {
+                    Text("This changes today’s round only. The course remains a nine-hole layout.")
+                }
             }
             Section("Round type") {
                 Picker("Format", selection: $format) {
@@ -43,7 +66,12 @@ struct RoundSetupView: View {
                 Label("The course and round save locally first and can resume after interruption.", systemImage: "checkmark.icloud.fill")
                     .foregroundStyle(OverParTheme.forest)
                 Button("Start round") {
-                    store.startRound(course: course, format: format, rulesCompliant: rulesCompliant)
+                    store.startRound(
+                        course: course,
+                        format: format,
+                        rulesCompliant: rulesCompliant,
+                        loopCount: selectedLoopCount
+                    )
                     hasStarted = true
                 }
                 .buttonStyle(PrimaryButtonStyle())
@@ -77,7 +105,7 @@ struct ActiveRoundView: View {
     }
     private var hole: Hole? {
         guard let round, let course else { return nil }
-        return course.hole(forRoundHole: round.holeNumber)
+        return course.hole(forRoundHole: round.holeNumber, loopCount: round.loopCount(for: course))
     }
     private var distance: CLLocationDistance? {
         guard let origin = targetLineOrigin, let target = hole?.greenReference else { return nil }
@@ -506,7 +534,7 @@ struct ActiveRoundView: View {
             Spacer()
             Button {
                 mutateRound { value in
-                    if let course, value.holeNumber < course.roundHoleCount {
+                    if let course, value.holeNumber < value.totalHoleCount(for: course) {
                         value.holeNumber += 1
                         value.manualPlayerLocation = nil
                         pendingShot = nil
@@ -516,7 +544,7 @@ struct ActiveRoundView: View {
                 }
             } label: {
                 Label(
-                    round.holeNumber < (course?.roundHoleCount ?? 0) ? "Next hole" : "Finish",
+                    round.holeNumber < (course.map { round.totalHoleCount(for: $0) } ?? 0) ? "Next hole" : "Finish",
                     systemImage: "flag.checkered"
                 )
                     .font(.system(.caption, design: .rounded, weight: .bold))
@@ -527,7 +555,7 @@ struct ActiveRoundView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(
-                round.holeNumber < (course?.roundHoleCount ?? 0) ? "Complete hole" : "Finish round"
+                round.holeNumber < (course.map { round.totalHoleCount(for: $0) } ?? 0) ? "Complete hole" : "Finish round"
             )
         }
     }
