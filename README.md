@@ -1,6 +1,6 @@
 # OverPar for iOS
 
-OverPar Release 1.0 is a native SwiftUI iPhone application. Open [`OverPar.xcodeproj`](OverPar.xcodeproj) in Xcode.
+OverPar is a golf app with built-in GPS and shot tracing. Release 1.0 is a native SwiftUI iPhone application. Open [`OverPar.xcodeproj`](OverPar.xcodeproj) in Xcode.
 
 ## Requirements
 
