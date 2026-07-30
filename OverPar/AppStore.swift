@@ -288,10 +288,36 @@ final class AppStore: ObservableObject {
             selected = numberedIrons.min(by: { $0.0 < $1.0 })?.1
                 ?? controlledIronOptions.max(by: { $0.carryMetres < $1.carryMetres })
         } else {
-            selected = carryOptions
-                .filter { $0.carryMetres >= adjustedTarget }
-                .min(by: { $0.carryMetres < $1.carryMetres })
-                ?? carryOptions.max(by: { $0.carryMetres < $1.carryMetres })
+            // A green recommendation must account for release as well as carry.
+            // Prefer the closest expected finish, with an additional penalty
+            // for running beyond the target. This prevents firm-ground advice
+            // from selecting a club whose displayed outcome contradicts the
+            // distance the golfer is trying to cover.
+            selected = carryOptions.min { lhs, rhs in
+                let lhsRoll = estimatedRoll(
+                    carryMetres: lhs.carryMetres,
+                    club: lhs.club,
+                    hole: hole,
+                    player: player,
+                    rawDistanceMetres: distanceMetres,
+                    targetSlopeRatio: slopeRatio
+                )
+                let rhsRoll = estimatedRoll(
+                    carryMetres: rhs.carryMetres,
+                    club: rhs.club,
+                    hole: hole,
+                    player: player,
+                    rawDistanceMetres: distanceMetres,
+                    targetSlopeRatio: slopeRatio
+                )
+                let lhsFinish = lhs.carryMetres + lhsRoll
+                let rhsFinish = rhs.carryMetres + rhsRoll
+                let lhsOvershoot = max(0, lhsFinish - adjustedTarget)
+                let rhsOvershoot = max(0, rhsFinish - adjustedTarget)
+                let lhsCost = abs(lhsFinish - adjustedTarget) + lhsOvershoot * 0.75
+                let rhsCost = abs(rhsFinish - adjustedTarget) + rhsOvershoot * 0.75
+                return lhsCost < rhsCost
+            }
         }
         guard var recommendation = selected else { return nil }
         recommendation.adjustedTargetMetres = adjustedTarget
@@ -567,24 +593,24 @@ final class AppStore: ObservableObject {
         landingSlope: Double
     ) -> String? {
         guard hole?.terrainProfile != nil else { return nil }
-        let ground = playingConditions.map { "\($0.firmness.rawValue.capitalized) Ground" }
+        let ground = playingConditions.map { "Estimated \($0.firmness.rawValue.lowercased()) ground" }
             ?? "Weather Unavailable"
         let grade = abs(slopeRatio) * 100
         let terrain: String
         if elevationChangeMetres >= 1.5
             || slopeRatio >= 0.006
             || (terrainTrend == .uphill && elevationChangeMetres >= 1) {
-            terrain = "Climbs \(Int(abs(elevationChangeMetres).rounded())) m (\(String(format: "%.1f", grade))%)"
+            terrain = "Climbs \(Int(abs(elevationChangeMetres).rounded())) m"
         } else if elevationChangeMetres <= -1.5
                     || slopeRatio <= -0.006
                     || (terrainTrend == .downhill && elevationChangeMetres <= -1) {
-            terrain = "Drops \(Int(abs(elevationChangeMetres).rounded())) m (\(String(format: "%.1f", grade))%)"
+            terrain = "Drops \(Int(abs(elevationChangeMetres).rounded())) m"
         } else if landingSlope >= 0.03 {
-            terrain = "Uphill Landing"
+            terrain = "Uphill landing"
         } else if landingSlope <= -0.03 {
-            terrain = "Downhill Landing"
+            terrain = "Downhill landing"
         } else {
-            terrain = "Near Level (\(String(format: "%.1f", grade))%)"
+            terrain = "Near level"
         }
         return "\(ground) · \(terrain)"
     }

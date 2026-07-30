@@ -217,6 +217,12 @@ struct MainTabView: View {
                 .tag(AppTab.profile)
         }
         .task {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-screenshotActiveRound") {
+                showActiveRound = true
+                return
+            }
+            #endif
             guard !hasOfferedResume, store.activeRound != nil else { return }
             hasOfferedResume = true
             try? await Task.sleep(for: .milliseconds(450))

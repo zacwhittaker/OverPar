@@ -121,21 +121,18 @@ struct ActiveRoundView: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
                     roundHeader(round: round, course: course, hole: hole)
                     if mapMode != .none {
                         mapInstruction
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
                     Spacer()
-                    HStack {
-                        Spacer()
-                        mapTools(round: round)
-                    }
+                    compactMapTools(round: round)
                     companionPanel(distance: distance, round: round)
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 10)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
             } else {
                 ContentUnavailableView("No active round", systemImage: "flag.slash")
             }
@@ -197,21 +194,21 @@ struct ActiveRoundView: View {
     }
 
     private func roundHeader(round: ActiveRound, course: GolfCourse, hole: Hole) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(course.name)
                     .font(.system(.caption, design: .rounded, weight: .bold))
                     .foregroundStyle(OverParTheme.secondary)
-                Text("Hole \(round.holeNumber) · Par \(hole.par)")
-                    .font(.system(.title2, design: .rounded, weight: .heavy))
+                Text("Hole \(round.holeNumber)  ·  Par \(hole.par)")
+                    .font(.system(.headline, design: .rounded, weight: .heavy))
             }
             Spacer()
             if round.manualPlayerLocation != nil {
-                Label("Manual position", systemImage: "hand.tap.fill")
-                    .font(.system(.caption, design: .rounded, weight: .bold))
+                Label("Manual", systemImage: "hand.tap.fill")
+                    .font(.system(.caption2, design: .rounded, weight: .bold))
                     .foregroundStyle(.orange)
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 7)
                     .background(.white, in: Capsule())
             } else {
                 StatusPill(
@@ -241,7 +238,8 @@ struct ActiveRoundView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Round menu")
         }
-        .padding(14)
+        .padding(.horizontal, 12)
+        .frame(height: 66)
         .background(
             reduceTransparency ? AnyShapeStyle(Color.white) : AnyShapeStyle(.ultraThinMaterial),
             in: RoundedRectangle(cornerRadius: 21, style: .continuous)
@@ -278,10 +276,11 @@ struct ActiveRoundView: View {
         .shadow(color: .black.opacity(0.18), radius: 9, y: 4)
     }
 
-    private func mapTools(round: ActiveRound) -> some View {
-        VStack(spacing: 9) {
+    private func compactMapTools(round: ActiveRound) -> some View {
+        HStack(spacing: 8) {
+            Spacer()
             mapTool(
-                title: round.manualPlayerLocation == nil ? "Set position" : "Move position",
+                title: round.manualPlayerLocation == nil ? "Position" : "Move",
                 symbol: "location.fill.viewfinder",
                 active: mapMode == .player
             ) {
@@ -315,39 +314,29 @@ struct ActiveRoundView: View {
                     .font(.system(.caption, design: .rounded, weight: .bold))
             }
             .foregroundStyle(active ? .white : OverParTheme.forestDark)
-            .padding(.horizontal, 12)
-            .frame(height: 42)
+            .padding(.horizontal, 11)
+            .frame(height: 38)
             .background(
                 active
                     ? AnyShapeStyle(OverParTheme.forest.opacity(0.94))
                     : reduceTransparency
                         ? AnyShapeStyle(Color.white)
                         : AnyShapeStyle(.ultraThinMaterial),
-                in: Capsule()
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
             )
             .overlay {
-                Capsule()
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.white.opacity(active || reduceTransparency ? 0 : 0.14))
                     .allowsHitTesting(false)
             }
             .overlay {
-                Capsule()
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(Color.white.opacity(0.72), lineWidth: 0.8)
                     .allowsHitTesting(false)
             }
             .shadow(color: .black.opacity(0.14), radius: 7, y: 3)
         }
         .buttonStyle(.plain)
-    }
-
-    private func conditionBadge(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 9, weight: .heavy, design: .rounded))
-            .foregroundStyle(OverParTheme.forest)
-            .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
-            .background(OverParTheme.mint.opacity(0.9), in: Capsule())
     }
 
     private func companionPanel(distance: Double?, round: ActiveRound) -> some View {
@@ -359,10 +348,10 @@ struct ActiveRoundView: View {
             )
         }
 
-        return VStack(spacing: 12) {
-            HStack(alignment: .top, spacing: 14) {
+        return VStack(spacing: 10) {
+            HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("TO GREEN")
+                    Text("GREEN CENTRE")
                         .font(.system(.caption2, design: .rounded, weight: .heavy))
                         .tracking(1.2)
                         .foregroundStyle(OverParTheme.forest)
@@ -370,31 +359,10 @@ struct ActiveRoundView: View {
                         let shown = store.profile.units == "yards" ? distance * 1.09361 : distance
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(Int(shown.rounded()))")
-                                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                                .font(.system(size: 46, weight: .heavy, design: .rounded))
                                 .monospacedDigit()
                             Text(store.profile.units == "yards" ? "yd" : "m")
                                 .font(.headline)
-                        }
-                        if !round.rulesCompliant, let recommendation {
-                            let factor = store.profile.units == "yards" ? 1.09361 : 1
-                            let unit = store.profile.units == "yards" ? "yd" : "m"
-                            let carry = recommendation.carryMetres * factor
-                            let total = (recommendation.carryMetres + recommendation.estimatedRollMetres) * factor
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("EXPECTED WITH \(recommendation.club.displayName.uppercased())")
-                                    .font(.system(size: 9, weight: .heavy, design: .rounded))
-                                    .tracking(0.7)
-                                    .foregroundStyle(OverParTheme.secondary)
-                                Text(
-                                    "\(Int(carry.rounded())) \(unit) carry"
-                                    + (recommendation.estimatedRollMetres > 0.5
-                                       ? "  •  ~\(Int(total.rounded())) \(unit) total"
-                                       : "")
-                                )
-                                .font(.system(.caption, design: .rounded, weight: .heavy))
-                                .foregroundStyle(OverParTheme.forest)
-                            }
-                            .padding(.top, 3)
                         }
                     } else {
                         Text("Set position")
@@ -411,9 +379,9 @@ struct ActiveRoundView: View {
                         showClubDistances = true
                     } label: {
                         HStack(spacing: 9) {
-                        GolfClubIcon(club: recommendation.club, size: 46)
+                        GolfClubIcon(club: recommendation.club, size: 40)
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("PLAY")
+                            Text("SUGGESTED")
                                 .font(.caption2.bold())
                                 .foregroundStyle(OverParTheme.secondary)
                             Text(recommendation.club.displayName)
@@ -423,7 +391,7 @@ struct ActiveRoundView: View {
                                     .font(.caption2)
                                     .foregroundStyle(OverParTheme.secondary)
                             }
-                            Text(recommendation.isEstimated ? "Estimated club" : "From your carry")
+                            Text(recommendation.isEstimated ? "Low-confidence estimate" : "From recorded carry")
                                 .font(.system(size: 9, weight: .semibold, design: .rounded))
                                 .foregroundStyle(OverParTheme.secondary)
                         }
@@ -437,13 +405,22 @@ struct ActiveRoundView: View {
                 }
             }
             if !round.rulesCompliant,
-               let summary = recommendation?.conditionsSummary {
+               let recommendation {
+                let factor = store.profile.units == "yards" ? 1.09361 : 1
+                let unit = store.profile.units == "yards" ? "yd" : "m"
+                let carry = recommendation.carryMetres * factor
+                let total = (recommendation.carryMetres + recommendation.estimatedRollMetres) * factor
                 HStack(spacing: 6) {
-                    ForEach(summary.components(separatedBy: " · "), id: \.self) {
-                        conditionBadge($0)
-                    }
-                    Spacer(minLength: 0)
+                    Image(systemName: "info.circle")
+                    Text(
+                        "\(Int(carry.rounded())) \(unit) carry"
+                        + (recommendation.estimatedRollMetres > 0.5 ? " · est. \(Int(total.rounded())) \(unit) finish" : "")
+                        + (recommendation.conditionsSummary.map { " · \($0)" } ?? "")
+                    )
+                    .lineLimit(2)
                 }
+                .font(.system(.caption2, design: .rounded, weight: .semibold))
+                .foregroundStyle(OverParTheme.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             HStack(spacing: 10) {
@@ -451,17 +428,20 @@ struct ActiveRoundView: View {
                     logOrFinishShot()
                 } label: {
                     Label(
-                        pendingShot == nil ? "Log shot" : "Finish shot",
+                        playerCoordinate == nil
+                            ? "Set position first"
+                            : pendingShot == nil ? "Log shot" : "Finish shot",
                         systemImage: pendingShot == nil ? "location.north.fill" : "checkmark.circle.fill"
                     )
                     .font(.system(.subheadline, design: .rounded, weight: .bold))
                     .foregroundStyle(OverParTheme.forestDark)
                     .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(Color.white.opacity(0.34), in: Capsule())
-                    .overlay(Capsule().stroke(Color.white.opacity(0.7), lineWidth: 0.8))
+                    .background(Color.white.opacity(0.5), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.8), lineWidth: 0.8))
                 }
                 .buttonStyle(.plain)
                 .disabled(playerCoordinate == nil)
+                .opacity(playerCoordinate == nil ? 0.5 : 1)
                 Button {
                     showCamera = true
                 } label: {
@@ -469,14 +449,13 @@ struct ActiveRoundView: View {
                         .font(.system(.subheadline, design: .rounded, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, minHeight: 54)
-                        .background(OverParTheme.forest.opacity(0.94), in: Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.28), lineWidth: 0.8))
+                        .background(OverParTheme.forest.opacity(0.96), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
             scoreControls(round: round)
         }
-        .padding(16)
+        .padding(14)
         .background(
             reduceTransparency ? AnyShapeStyle(Color.white) : AnyShapeStyle(.regularMaterial),
             in: RoundedRectangle(cornerRadius: 25, style: .continuous)
@@ -495,7 +474,7 @@ struct ActiveRoundView: View {
     }
 
     private func scoreControls(round: ActiveRound) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             Button {
                 mutateRound { value in
                     value.scores[value.holeNumber] = max(0, (value.scores[value.holeNumber] ?? 0) - 1)
@@ -507,9 +486,13 @@ struct ActiveRoundView: View {
                     .background(Color.white.opacity(0.38), in: Circle())
             }
             .buttonStyle(.plain)
-            Text("Score \(round.scores[round.holeNumber] ?? 0)")
-                .font(.system(.headline, design: .rounded, weight: .heavy))
-                .monospacedDigit()
+            VStack(alignment: .leading, spacing: 0) {
+                Text("HOLE STROKES").font(.system(size: 8, weight: .bold)).tracking(0.8)
+                    .foregroundStyle(OverParTheme.secondary)
+                Text("\(round.scores[round.holeNumber] ?? 0)")
+                    .font(.system(.headline, design: .rounded, weight: .heavy))
+                    .monospacedDigit()
+            }
             Button {
                 mutateRound { $0.scores[$0.holeNumber, default: 0] += 1 }
             } label: {
@@ -521,17 +504,6 @@ struct ActiveRoundView: View {
             .buttonStyle(.plain)
             Spacer()
             Button {
-                showFinishRound = true
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .heavy))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.red.opacity(0.9), in: Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("End round")
-            Button {
                 mutateRound { value in
                     if let course, value.holeNumber < course.roundHoleCount {
                         value.holeNumber += 1
@@ -542,11 +514,15 @@ struct ActiveRoundView: View {
                     }
                 }
             } label: {
-                Image(systemName: "flag.checkered")
-                    .font(.system(size: 18, weight: .bold))
+                Label(
+                    round.holeNumber < (course?.roundHoleCount ?? 0) ? "Next hole" : "Finish",
+                    systemImage: "flag.checkered"
+                )
+                    .font(.system(.caption, design: .rounded, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 48, height: 44)
-                    .background(OverParTheme.forest.opacity(0.94), in: Capsule())
+                    .padding(.horizontal, 13)
+                    .frame(height: 44)
+                    .background(OverParTheme.forest.opacity(0.96), in: RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(
@@ -894,7 +870,10 @@ private struct RoundSatelliteMap: UIViewRepresentable {
         map.settings.rotateGestures = false
         map.settings.tiltGestures = false
         map.isBuildingsEnabled = false
-        map.padding = UIEdgeInsets(top: 142, left: 8, bottom: 292, right: 8)
+        // Reserve the real compact overlay footprints, plus marker labels and
+        // Google attribution. Keeping this synchronized with the SwiftUI
+        // chrome prevents endpoints and legal attribution from hiding below it.
+        map.padding = UIEdgeInsets(top: 96, left: 12, bottom: 270, right: 12)
         context.coordinator.render(
             hole: hole,
             player: player,
@@ -970,7 +949,7 @@ private struct RoundSatelliteMap: UIViewRepresentable {
                     coordinate: green.clLocationCoordinate,
                     title: "GREEN",
                     symbol: "flag.fill",
-                    colour: .systemRed,
+                    colour: UIColor(OverParTheme.success),
                     on: map
                 )
             }
@@ -1116,7 +1095,9 @@ private struct RoundSatelliteMap: UIViewRepresentable {
 private final class RoundMapMarker: UIView {
     init(title: String, symbol: String, colour: UIColor, prominent: Bool) {
         let diameter: CGFloat = prominent ? 46 : 38
-        super.init(frame: CGRect(x: 0, y: 0, width: max(68, diameter + 18), height: diameter + 24))
+        let labelFont = UIFont.systemFont(ofSize: 9, weight: .heavy)
+        let labelWidth = ceil((title as NSString).size(withAttributes: [.font: labelFont]).width) + 18
+        super.init(frame: CGRect(x: 0, y: 0, width: max(labelWidth, diameter + 18), height: diameter + 24))
 
         let circle = UIView(frame: CGRect(
             x: (bounds.width - diameter) / 2,
@@ -1142,7 +1123,7 @@ private final class RoundMapMarker: UIView {
 
         let label = UILabel(frame: CGRect(x: 0, y: diameter + 3, width: bounds.width, height: 18))
         label.text = title
-        label.font = .systemFont(ofSize: 9, weight: .heavy)
+        label.font = labelFont
         label.textColor = .white
         label.textAlignment = .center
         label.backgroundColor = UIColor.black.withAlphaComponent(0.58)

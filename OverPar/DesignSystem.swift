@@ -284,7 +284,7 @@ struct GolfClubIcon: View {
                 .stroke(selected ? Color.white : OverParTheme.forest, style: StrokeStyle(lineWidth: max(2, size * 0.045), lineCap: .round, lineJoin: .round))
                 .padding(size * 0.17)
             Text(club.iconLabel)
-                .font(.system(size: size * 0.19, weight: .heavy, design: .rounded))
+                .font(.system(size: size * 0.18, weight: .heavy, design: .monospaced))
                 .foregroundStyle(selected ? OverParTheme.forest : .white)
                 .padding(.horizontal, size * 0.09)
                 .padding(.vertical, size * 0.035)
