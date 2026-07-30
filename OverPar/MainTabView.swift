@@ -174,6 +174,7 @@ struct MainTabView: View {
     @State private var selection: AppTab
     @State private var showResumePrompt = false
     @State private var showActiveRound = false
+    @State private var showCourseOverview = false
     @State private var hasOfferedResume = false
 
     init() {
@@ -216,6 +217,10 @@ struct MainTabView: View {
         }
         .task {
             #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-screenshotCourseOverview") {
+                showCourseOverview = true
+                return
+            }
             if ProcessInfo.processInfo.arguments.contains("-screenshotActiveRound") {
                 showActiveRound = true
                 return
@@ -245,6 +250,13 @@ struct MainTabView: View {
                             Button("Close") { showActiveRound = false }
                         }
                     }
+            }
+        }
+        .fullScreenCover(isPresented: $showCourseOverview) {
+            NavigationStack {
+                if let course = store.courses.first {
+                    CourseOverviewView(courseID: course.id)
+                }
             }
         }
     }
@@ -308,7 +320,7 @@ struct HomeView: View {
                     VStack(spacing: 0) {
                         ForEach(store.courses.prefix(3)) { course in
                             NavigationLink {
-                                CoursePreviewView(course: course)
+                                CourseOverviewView(courseID: course.id)
                             } label: {
                                 HStack(spacing: 12) {
                                     CourseCoverImage(course: course)

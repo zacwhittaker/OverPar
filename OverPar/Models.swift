@@ -59,6 +59,7 @@ struct GolfCourse: Codable, Identifiable, Hashable {
     var defaultLoopCount: Int? = nil
     var coverPhotoFilename: String? = nil
     var createdByCurrentUser: Bool? = nil
+    var creatorUsername: String? = nil
 
     var holeCount: Int { currentRevision.holes.count }
     var totalPar: Int { currentRevision.holes.reduce(0) { $0 + $1.par } }

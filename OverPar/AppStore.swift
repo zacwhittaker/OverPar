@@ -97,7 +97,8 @@ final class AppStore: ObservableObject {
             isSaved: true,
             currentRevision: CourseRevision(revisionNumber: 1, holes: holes),
             defaultLoopCount: loopCount,
-            createdByCurrentUser: true
+            createdByCurrentUser: true,
+            creatorUsername: profile.username
         )
         course.coverPhotoFilename = saveCourseCover(coverPhotoData, courseID: course.id)
         courses.append(course)
@@ -128,6 +129,36 @@ final class AppStore: ObservableObject {
             holes: holes
         )
         if let coverPhotoData {
+            course.coverPhotoFilename = saveCourseCover(coverPhotoData, courseID: course.id)
+        }
+        courses[index] = course
+    }
+
+    func updateCourseDetails(
+        courseID: UUID,
+        name: String,
+        facility: String,
+        city: String,
+        postcode: String,
+        coverPhotoData: Data?,
+        useDefaultCover: Bool
+    ) {
+        guard let index = courses.firstIndex(where: { $0.id == courseID }),
+              courses[index].canCurrentUserEdit
+        else { return }
+        var course = courses[index]
+        course.name = name
+        course.facilityName = facility.isEmpty ? name : facility
+        course.city = city
+        course.postcode = postcode
+        course.createdByCurrentUser = true
+        course.creatorUsername = course.creatorUsername ?? profile.username
+        if useDefaultCover {
+            if let filename = course.coverPhotoFilename {
+                try? FileManager.default.removeItem(at: courseCoverDirectory.appendingPathComponent(filename))
+            }
+            course.coverPhotoFilename = nil
+        } else if let coverPhotoData {
             course.coverPhotoFilename = saveCourseCover(coverPhotoData, courseID: course.id)
         }
         courses[index] = course

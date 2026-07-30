@@ -136,7 +136,6 @@ struct ResearchPlayView: View {
     @EnvironmentObject private var location: LocationService
     @State private var query = ""
     @State private var showCreator = false
-    @State private var editingCourse: GolfCourse?
 
     private var courses: [GolfCourse] {
         guard !query.isEmpty else { return store.courses }
@@ -179,20 +178,6 @@ struct ResearchPlayView: View {
                     Text(query.isEmpty ? "NEARBY COURSES" : "SEARCH RESULTS")
                         .font(.caption2.bold()).tracking(1.1)
                     Spacer()
-                    if courses.contains(where: { $0.canCurrentUserEdit }) {
-                        Menu {
-                            ForEach(courses.filter(\.canCurrentUserEdit)) { course in
-                                Button {
-                                    editingCourse = course
-                                } label: {
-                                    Label(course.name, systemImage: "pencil")
-                                }
-                            }
-                        } label: {
-                            Label("Edit mine", systemImage: "pencil")
-                        }
-                        .font(.caption.bold())
-                    }
                     Button { showCreator = true } label: {
                         Label("Add course", systemImage: "plus")
                     }
@@ -203,7 +188,7 @@ struct ResearchPlayView: View {
                 .padding(.bottom, 12)
 
                 if let featured = courses.first {
-                    NavigationLink { CoursePreviewView(course: featured) } label: {
+                    NavigationLink { CourseOverviewView(courseID: featured.id) } label: {
                         ZStack(alignment: .bottomLeading) {
                             CourseCoverImage(course: featured)
                                 .frame(height: 228).clipped()
@@ -225,7 +210,7 @@ struct ResearchPlayView: View {
 
                     VStack(spacing: 0) {
                         ForEach(Array(courses.dropFirst())) { course in
-                            NavigationLink { CoursePreviewView(course: course) } label: {
+                            NavigationLink { CourseOverviewView(courseID: course.id) } label: {
                                 HStack(spacing: 14) {
                                     CourseCoverImage(course: course)
                                         .frame(width: 104, height: 76)
@@ -267,7 +252,6 @@ struct ResearchPlayView: View {
         }
         .navigationBarHidden(true)
         .sheet(isPresented: $showCreator) { CourseCreatorView() }
-        .sheet(item: $editingCourse) { CourseCreatorView(editing: $0) }
         .overParPage()
     }
 }
@@ -362,6 +346,381 @@ struct PlayView: View {
         }
         .sheet(isPresented: $showCreator) { CourseCreatorView() }
         .overParPage()
+    }
+}
+
+struct CourseOverviewView: View {
+    @EnvironmentObject private var store: AppStore
+    let courseID: UUID
+    @State private var showDetailsEditor = false
+    @State private var showHoleEditor = false
+    @State private var isUpdatingTerrain = false
+    @State private var terrainError: String?
+
+    private var course: GolfCourse? {
+        store.courses.first { $0.id == courseID }
+    }
+
+    var body: some View {
+        Group {
+            if let course {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        hero(course)
+                        overview(course)
+                    }
+                }
+                .ignoresSafeArea(edges: .top)
+                .toolbar {
+                    if course.canCurrentUserEdit {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Menu {
+                                Button {
+                                    showDetailsEditor = true
+                                } label: {
+                                    Label("Edit course", systemImage: "pencil")
+                                }
+                                Button {
+                                    showHoleEditor = true
+                                } label: {
+                                    Label("Edit holes", systemImage: "mappin.and.ellipse")
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis")
+                                    .font(.headline)
+                                    .foregroundStyle(OverParTheme.forestDark)
+                                    .frame(width: 44, height: 44)
+                                    .background(.ultraThinMaterial, in: Circle())
+                                    .overlay(Circle().stroke(.white.opacity(0.65)))
+                            }
+                            .accessibilityLabel("Course options")
+                        }
+                    }
+                }
+                .sheet(isPresented: $showDetailsEditor) {
+                    CourseDetailsEditorView(course: course)
+                }
+                .sheet(isPresented: $showHoleEditor) {
+                    CourseCreatorView(editing: course, startsAtHoles: true)
+                }
+            } else {
+                ContentUnavailableView("Course unavailable", systemImage: "flag.slash")
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .alert("Terrain update failed", isPresented: Binding(
+            get: { terrainError != nil },
+            set: { if !$0 { terrainError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(terrainError ?? "Please try again.")
+        }
+        .overParPage()
+    }
+
+    private func hero(_ course: GolfCourse) -> some View {
+        ZStack(alignment: .bottomLeading) {
+            CourseCoverImage(course: course)
+                .frame(height: 330)
+                .clipped()
+            LinearGradient(
+                colors: [.black.opacity(0.08), .clear, .black.opacity(0.82)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            VStack(alignment: .leading, spacing: 7) {
+                Text(course.isVerified ? "VERIFIED COURSE" : "COMMUNITY COURSE")
+                    .font(.caption2.bold())
+                    .tracking(1.2)
+                    .foregroundStyle(.white.opacity(0.82))
+                Text(course.name)
+                    .font(.system(size: 34, weight: .heavy, design: .rounded))
+                if !course.city.isEmpty {
+                    Label(course.city, systemImage: "mappin")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.84))
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
+        .frame(height: 330)
+    }
+
+    private func overview(_ course: GolfCourse) -> some View {
+        VStack(alignment: .leading, spacing: 24) {
+            HStack(spacing: 0) {
+                metric("\(course.roundHoleCount)", "Holes")
+                Divider().frame(height: 42)
+                metric("\(course.roundTotalPar)", "Par")
+                Divider().frame(height: 42)
+                metric("R\(course.currentRevision.revisionNumber)", "Revision")
+            }
+
+            HStack(spacing: 10) {
+                NavigationLink {
+                    RoundSetupView(course: course)
+                } label: {
+                    Label("Play", systemImage: "flag.fill")
+                }
+                .buttonStyle(PrimaryButtonStyle())
+
+                NavigationLink {
+                    CoursePreviewView(course: course)
+                } label: {
+                    Label("Preview", systemImage: "map.fill")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+            }
+
+            Button {
+                updateTerrain(course)
+            } label: {
+                HStack {
+                    if isUpdatingTerrain {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
+                    Text(isUpdatingTerrain ? "Updating terrain…" : "Update terrain")
+                    Spacer()
+                    Text("Tee to green")
+                        .font(.caption)
+                        .foregroundStyle(OverParTheme.secondary)
+                }
+            }
+            .buttonStyle(SecondaryButtonStyle())
+            .disabled(isUpdatingTerrain)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("COURSE DETAILS")
+                    .font(.caption2.bold())
+                    .tracking(1.2)
+                    .foregroundStyle(OverParTheme.forest)
+                detailRow("Facility", value: course.facilityName)
+                if !course.city.isEmpty { detailRow("Location", value: course.city) }
+                if !course.postcode.isEmpty { detailRow("Postcode", value: course.postcode) }
+                detailRow("Layout", value: course.repeatsLayout
+                          ? "\(course.holeCount) mapped holes · \(course.loopCount) loops"
+                          : "\(course.holeCount)-hole course")
+                detailRow("Created by", value: "@\(course.creatorUsername ?? (course.canCurrentUserEdit ? store.profile.username : "community"))")
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("HOLE-BY-HOLE")
+                        .font(.caption2.bold())
+                        .tracking(1.2)
+                        .foregroundStyle(OverParTheme.forest)
+                    Spacer()
+                    Text("Par \(course.totalPar)")
+                        .font(.subheadline.bold())
+                }
+                VStack(spacing: 0) {
+                    ForEach(course.currentRevision.holes) { hole in
+                        HStack {
+                            Text("\(hole.number)")
+                                .font(.headline.monospacedDigit())
+                                .frame(width: 32, alignment: .leading)
+                            Text("Hole \(hole.number)")
+                                .font(.subheadline.weight(.semibold))
+                            Spacer()
+                            if let yards = yardage(for: hole) {
+                                Text("\(yards) yd")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(OverParTheme.secondary)
+                            }
+                            Text("Par \(hole.par)")
+                                .font(.subheadline.bold())
+                                .frame(width: 52, alignment: .trailing)
+                        }
+                        .padding(.vertical, 13)
+                        if hole.id != course.currentRevision.holes.last?.id {
+                            Divider()
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 22)
+        .padding(.bottom, 36)
+        .background(OverParTheme.canvas)
+    }
+
+    private func metric(_ value: String, _ label: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label).font(.caption).foregroundStyle(OverParTheme.secondary)
+            Text(value).font(.system(.title2, design: .rounded, weight: .heavy)).monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+    }
+
+    private func detailRow(_ label: String, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label).foregroundStyle(OverParTheme.secondary)
+            Spacer()
+            Text(value).fontWeight(.semibold).multilineTextAlignment(.trailing)
+        }
+        .font(.subheadline)
+        .padding(.vertical, 3)
+    }
+
+    private func yardage(for hole: Hole) -> Int? {
+        guard let tee = hole.tee, let green = hole.greenReference else { return nil }
+        let metres = CLLocation(latitude: tee.latitude, longitude: tee.longitude)
+            .distance(from: CLLocation(latitude: green.latitude, longitude: green.longitude))
+        return Int((metres * 1.09361).rounded())
+    }
+
+    private func updateTerrain(_ course: GolfCourse) {
+        guard !isUpdatingTerrain else { return }
+        isUpdatingTerrain = true
+        Task {
+            do {
+                var holes = course.currentRevision.holes
+                for index in holes.indices {
+                    holes[index].terrainProfile = try await TerrainElevationService.profile(for: holes[index])
+                }
+                store.publishTerrainRevision(courseID: course.id, holes: holes)
+                isUpdatingTerrain = false
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            } catch {
+                isUpdatingTerrain = false
+                terrainError = error.localizedDescription
+            }
+        }
+    }
+}
+
+private struct CourseDetailsEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var store: AppStore
+    let course: GolfCourse
+    @State private var name: String
+    @State private var facility: String
+    @State private var city: String
+    @State private var postcode: String
+    @State private var coverSelection: PhotosPickerItem?
+    @State private var coverPhotoData: Data?
+    @State private var useDefaultCover = false
+
+    init(course: GolfCourse) {
+        self.course = course
+        _name = State(initialValue: course.name)
+        _facility = State(initialValue: course.facilityName)
+        _city = State(initialValue: course.city)
+        _postcode = State(initialValue: course.postcode)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("COURSE IDENTITY")
+                            .font(.caption2.bold()).tracking(1.2)
+                            .foregroundStyle(OverParTheme.forest)
+                        Text("Edit course")
+                            .font(.system(.largeTitle, design: .rounded, weight: .heavy))
+                        Text("Update how this course appears without changing its saved hole positions.")
+                            .foregroundStyle(OverParTheme.secondary)
+                    }
+
+                    ZStack(alignment: .bottomLeading) {
+                        Group {
+                            if useDefaultCover {
+                                CourseCoverImage(course: nil)
+                            } else if let coverPhotoData, let image = UIImage(data: coverPhotoData) {
+                                Image(uiImage: image).resizable().scaledToFill()
+                            } else {
+                                CourseCoverImage(course: course)
+                            }
+                        }
+                        .frame(height: 210)
+                        .clipped()
+                        LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .center, endPoint: .bottom)
+                        Text(useDefaultCover ? "DEFAULT COURSE IMAGE" : "COURSE COVER")
+                            .font(.caption2.bold()).tracking(1)
+                            .foregroundStyle(.white)
+                            .padding(16)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+
+                    HStack(spacing: 10) {
+                        PhotosPicker(selection: $coverSelection, matching: .images) {
+                            Label("Choose photo", systemImage: "photo.badge.plus")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(PrimaryButtonStyle())
+                        if course.coverPhotoFilename != nil || coverPhotoData != nil {
+                            Button {
+                                coverPhotoData = nil
+                                useDefaultCover = true
+                            } label: {
+                                Label("Use default", systemImage: "arrow.uturn.backward")
+                            }
+                            .buttonStyle(SecondaryButtonStyle())
+                        }
+                    }
+                    .onChange(of: coverSelection) { _, item in
+                        Task {
+                            guard let data = try? await item?.loadTransferable(type: Data.self),
+                                  let image = UIImage(data: data),
+                                  let jpeg = image.jpegData(compressionQuality: 0.86)
+                            else { return }
+                            await MainActor.run {
+                                coverPhotoData = jpeg
+                                useDefaultCover = false
+                            }
+                        }
+                    }
+
+                    VStack(spacing: 12) {
+                        editorField("Course name", text: $name)
+                        editorField("Club or facility", text: $facility)
+                        editorField("City", text: $city)
+                        editorField("Postcode", text: $postcode)
+                    }
+                }
+                .padding(20)
+            }
+            .overParPage()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        store.updateCourseDetails(
+                            courseID: course.id,
+                            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                            facility: facility.trimmingCharacters(in: .whitespacesAndNewlines),
+                            city: city.trimmingCharacters(in: .whitespacesAndNewlines),
+                            postcode: postcode.trimmingCharacters(in: .whitespacesAndNewlines),
+                            coverPhotoData: coverPhotoData,
+                            useDefaultCover: useDefaultCover
+                        )
+                        dismiss()
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+
+    private func editorField(_ title: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title).font(.caption.bold()).foregroundStyle(OverParTheme.secondary)
+            TextField(title, text: text)
+                .textInputAutocapitalization(.words)
+                .padding(14)
+                .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 15))
+                .overlay(RoundedRectangle(cornerRadius: 15).stroke(OverParTheme.line))
+        }
     }
 }
 
@@ -1044,9 +1403,11 @@ struct CourseCreatorView: View {
     @State private var coverSelection: PhotosPickerItem?
     @State private var coverPhotoData: Data?
     private let editingCourseID: UUID?
+    private let firstEditableStep: Int
 
-    init(editing course: GolfCourse? = nil) {
+    init(editing course: GolfCourse? = nil, startsAtHoles: Bool = false) {
         editingCourseID = course?.id
+        firstEditableStep = startsAtHoles ? 1 : 0
         _name = State(initialValue: course?.name ?? "")
         _facility = State(initialValue: course?.facilityName ?? "")
         _city = State(initialValue: course?.city ?? "")
@@ -1054,6 +1415,7 @@ struct CourseCreatorView: View {
         _loopCount = State(initialValue: course?.loopCount ?? 1)
         _holes = State(initialValue: course?.currentRevision.holes ?? (1...18).map { Hole(number: $0, par: 4) })
         _showingSafety = State(initialValue: course == nil)
+        _step = State(initialValue: startsAtHoles ? 1 : 0)
     }
 
     private var currentHoleIndex: Int? {
@@ -1093,7 +1455,7 @@ struct CourseCreatorView: View {
             .animation(.easeInOut(duration: 0.25), value: isPublishing)
             .background(OverParTheme.canvas.ignoresSafeArea())
             .foregroundStyle(OverParTheme.ink)
-            .navigationTitle(editingCourseID == nil ? "Create course" : "Edit course")
+            .navigationTitle(editingCourseID == nil ? "Create course" : firstEditableStep == 1 ? "Edit holes" : "Edit course")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } }
@@ -1489,7 +1851,7 @@ struct CourseCreatorView: View {
 
     private var bottomControls: some View {
         HStack(spacing: 12) {
-            if step > 0 {
+            if step > firstEditableStep {
                 Button {
                     go(to: step - 1)
                 } label: {
@@ -1662,7 +2024,7 @@ struct CourseCreatorView: View {
     private func go(to newStep: Int) {
         placementTarget = "tee"
         withAnimation(.spring(response: 0.42, dampingFraction: 0.88)) {
-            step = max(0, min(newStep, totalSteps - 1))
+            step = max(firstEditableStep, min(newStep, totalSteps - 1))
         }
     }
 
