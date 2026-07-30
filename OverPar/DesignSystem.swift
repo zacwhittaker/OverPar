@@ -19,7 +19,39 @@ struct CourseCoverImage: View {
                     .scaledToFill()
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
         .accessibilityHidden(true)
+    }
+}
+
+enum CourseCoverProcessor {
+    private static let outputSize = CGSize(width: 1600, height: 900)
+
+    static func prepare(_ data: Data) -> Data? {
+        guard let image = UIImage(data: data), image.size.width > 0, image.size.height > 0 else {
+            return nil
+        }
+
+        let scale = max(
+            outputSize.width / image.size.width,
+            outputSize.height / image.size.height
+        )
+        let drawnSize = CGSize(
+            width: image.size.width * scale,
+            height: image.size.height * scale
+        )
+        let origin = CGPoint(
+            x: (outputSize.width - drawnSize.width) / 2,
+            y: (outputSize.height - drawnSize.height) / 2
+        )
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let renderer = UIGraphicsImageRenderer(size: outputSize, format: format)
+        return renderer.jpegData(withCompressionQuality: 0.84) { _ in
+            image.draw(in: CGRect(origin: origin, size: drawnSize))
+        }
     }
 }
 

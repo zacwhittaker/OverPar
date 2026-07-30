@@ -673,8 +673,7 @@ private struct CourseDetailsEditorView: View {
                     .onChange(of: coverSelection) { _, item in
                         Task {
                             guard let data = try? await item?.loadTransferable(type: Data.self),
-                                  let image = UIImage(data: data),
-                                  let jpeg = image.jpegData(compressionQuality: 0.86)
+                                  let jpeg = CourseCoverProcessor.prepare(data)
                             else { return }
                             await MainActor.run {
                                 coverPhotoData = jpeg
@@ -1571,8 +1570,7 @@ struct CourseCreatorView: View {
                     .onChange(of: coverSelection) { _, item in
                         Task {
                             guard let data = try? await item?.loadTransferable(type: Data.self),
-                                  let image = UIImage(data: data),
-                                  let jpeg = image.jpegData(compressionQuality: 0.86)
+                                  let jpeg = CourseCoverProcessor.prepare(data)
                             else { return }
                             await MainActor.run { coverPhotoData = jpeg }
                         }

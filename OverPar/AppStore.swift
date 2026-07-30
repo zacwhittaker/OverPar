@@ -1,5 +1,6 @@
 import CoreLocation
 import Foundation
+import UIKit
 
 private enum ClubDistanceFamily: Hashable {
     case teeWood
@@ -62,6 +63,7 @@ final class AppStore: ObservableObject {
             playingConditions = nil
             removeReleaseOneDemoHitsIfNeeded()
             removeReleaseOneDemoCourseIfNeeded()
+            normalizeStoredCourseCoversIfNeeded()
         } else {
             let seed = Self.seedData()
             profile = seed.profile
@@ -1009,6 +1011,19 @@ final class AppStore: ObservableObject {
             activeRound = nil
         }
         UserDefaults.standard.set(true, forKey: migrationKey)
+    }
+
+    private func normalizeStoredCourseCoversIfNeeded() {
+        for course in courses {
+            guard let filename = course.coverPhotoFilename else { continue }
+            let url = courseCoverDirectory.appendingPathComponent(filename)
+            guard let data = try? Data(contentsOf: url),
+                  let image = UIImage(data: data),
+                  image.size != CGSize(width: 1600, height: 900),
+                  let normalized = CourseCoverProcessor.prepare(data)
+            else { continue }
+            try? normalized.write(to: url, options: .atomic)
+        }
     }
 
     private static func seedData() -> AppData {
