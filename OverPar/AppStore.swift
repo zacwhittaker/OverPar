@@ -661,16 +661,52 @@ final class AppStore: ObservableObject {
         rangeHits.removeAll { deletedIDs.contains($0.clubID) }
     }
 
-    func addGalleryVideo(filename: String, courseName: String?, hole: Int?) {
+    func addGalleryVideo(
+        filename: String,
+        courseName: String?,
+        hole: Int?,
+        tracePoints: [GalleryItem.TracePoint] = [],
+        observedPointCount: Int = 0
+    ) {
+        let status: String
+        if observedPointCount >= 3 {
+            status = "Live trace ready"
+        } else {
+            status = "Original saved · trace not found"
+        }
         gallery.insert(
             GalleryItem(
                 title: "Recorded shot",
                 localVideoFilename: filename,
                 courseName: courseName,
-                holeNumber: hole
+                holeNumber: hole,
+                tracerStatus: status,
+                tracePoints: tracePoints,
+                observedPointCount: observedPointCount
             ),
             at: 0
         )
+    }
+
+    @discardableResult
+    func deleteGalleryItem(id: UUID) -> Bool {
+        guard let index = gallery.firstIndex(where: { $0.id == id }) else { return false }
+        let item = gallery[index]
+        if let filename = item.localVideoFilename {
+            let safeFilename = URL(fileURLWithPath: filename).lastPathComponent
+            let videoURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("Gallery", isDirectory: true)
+                .appendingPathComponent(safeFilename)
+            if FileManager.default.fileExists(atPath: videoURL.path) {
+                do {
+                    try FileManager.default.removeItem(at: videoURL)
+                } catch {
+                    return false
+                }
+            }
+        }
+        gallery.remove(at: index)
+        return true
     }
 
     private func statsInMetres(for club: GolfClub) -> Double? {

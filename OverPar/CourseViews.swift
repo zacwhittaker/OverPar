@@ -130,6 +130,132 @@ private enum TerrainElevationService {
     }
 }
 
+struct ResearchPlayView: View {
+    @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var location: LocationService
+    @State private var query = ""
+    @State private var showCreator = false
+
+    private var courses: [GolfCourse] {
+        guard !query.isEmpty else { return store.courses }
+        return store.courses.filter {
+            [$0.name, $0.facilityName, $0.city, $0.postcode]
+                .contains { $0.localizedCaseInsensitiveContains(query) }
+        }
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Play")
+                    .font(.system(size: 42, weight: .heavy, design: .rounded))
+                    .tracking(-1.2)
+                    .padding(.top, 10)
+                HStack(spacing: 12) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass")
+                        TextField("Search courses or cities", text: $query)
+                            .textInputAutocapitalization(.words)
+                        if !query.isEmpty {
+                            Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
+                                .foregroundStyle(OverParTheme.tertiary)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .frame(height: 52)
+                    .background(OverParTheme.secondarySurface.opacity(0.72), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    Button { location.requestOneShotLocation() } label: {
+                        Image(systemName: "map")
+                            .font(.title3)
+                            .frame(width: 48, height: 48)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 18)
+
+                HStack {
+                    Text(query.isEmpty ? "NEARBY COURSES" : "SEARCH RESULTS")
+                        .font(.caption2.bold()).tracking(1.1)
+                    Spacer()
+                    Button { showCreator = true } label: {
+                        Label("Add course", systemImage: "plus")
+                    }
+                    .font(.caption.bold())
+                }
+                .foregroundStyle(OverParTheme.forest)
+                .padding(.top, 30)
+                .padding(.bottom, 12)
+
+                if let featured = courses.first {
+                    NavigationLink { CoursePreviewView(course: featured) } label: {
+                        ZStack(alignment: .bottomLeading) {
+                            Image("CourseMorning")
+                                .resizable().scaledToFill()
+                                .frame(height: 228).clipped()
+                            LinearGradient(colors: [.clear, .black.opacity(0.76)], startPoint: .center, endPoint: .bottom)
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(featured.isVerified ? "VERIFIED" : "COMMUNITY")
+                                    .font(.caption2.bold()).tracking(1)
+                                Text(featured.name)
+                                    .font(.system(.title2, design: .rounded, weight: .bold))
+                                Text("\(featured.city)  ·  \(featured.roundHoleCount) holes")
+                                    .font(.subheadline).foregroundStyle(.white.opacity(0.82))
+                            }
+                            .padding(16)
+                        }
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+
+                    VStack(spacing: 0) {
+                        ForEach(Array(courses.dropFirst())) { course in
+                            NavigationLink { CoursePreviewView(course: course) } label: {
+                                HStack(spacing: 14) {
+                                    Image("CourseMorning").resizable().scaledToFill()
+                                        .frame(width: 104, height: 76)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(course.name).font(.headline).foregroundStyle(OverParTheme.ink)
+                                        Text("\(course.city)  ·  \(course.roundHoleCount) holes")
+                                            .font(.caption).foregroundStyle(OverParTheme.secondary)
+                                        Label(course.isVerified ? "Verified" : "Community", systemImage: course.isVerified ? "checkmark.seal.fill" : "person.2.fill")
+                                            .font(.caption2.bold()).foregroundStyle(OverParTheme.secondaryGreen)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right").font(.caption.bold())
+                                        .foregroundStyle(OverParTheme.tertiary)
+                                }
+                                .padding(.vertical, 11)
+                            }
+                            .buttonStyle(.plain)
+                            Divider()
+                        }
+                    }
+                    .padding(.top, 8)
+                } else {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Image(systemName: "map")
+                            .font(.system(size: 34)).foregroundStyle(OverParTheme.forest)
+                        Text(query.isEmpty ? "No courses nearby yet" : "No matching course")
+                            .font(.title2.bold())
+                        Text("Search by course, city or postcode—or map the first one for your community.")
+                            .foregroundStyle(OverParTheme.secondary)
+                        Button("Add a course") { showCreator = true }
+                            .buttonStyle(PrimaryButtonStyle())
+                    }
+                    .padding(.vertical, 34)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 28)
+        }
+        .navigationBarHidden(true)
+        .sheet(isPresented: $showCreator) { CourseCreatorView() }
+        .overParPage()
+    }
+}
+
 struct PlayView: View {
     @EnvironmentObject private var store: AppStore
     @EnvironmentObject private var location: LocationService
@@ -146,44 +272,71 @@ struct PlayView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 18) {
-                SectionHeading(eyebrow: "Find your next round", title: "Where are we playing?")
+            VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("PLAY")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .tracking(1.4)
+                        .foregroundStyle(OverParTheme.secondaryGreen)
+                    Text("Find your next\nfavourite course.")
+                        .font(.system(size: 34, weight: .heavy, design: .rounded))
+                        .tracking(-0.8)
+                        .lineSpacing(-2)
+                    Text("Community mapped. Ready whenever you are.")
+                        .foregroundStyle(OverParTheme.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 HStack {
                     Image(systemName: "magnifyingglass")
+                        .foregroundStyle(OverParTheme.forest)
                     TextField("Course, city or postcode", text: $query)
                         .textInputAutocapitalization(.words)
+                    if !query.isEmpty {
+                        Button { query = "" } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(OverParTheme.tertiary)
+                        }
+                    }
                 }
-                .padding()
-                .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal, 16)
+                .frame(minHeight: 56)
+                .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(OverParTheme.line))
+                .shadow(color: OverParTheme.Shadow.small.color, radius: OverParTheme.Shadow.small.radius, y: OverParTheme.Shadow.small.y)
                 HStack {
                     Button {
                         location.requestOneShotLocation()
                     } label: {
                         Label("Use my location", systemImage: "location.fill")
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SecondaryButtonStyle())
                     Spacer()
                     Button {
                         showCreator = true
                     } label: {
                         Label("Add a course", systemImage: "plus")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PrimaryButtonStyle())
                 }
+                SectionHeading(
+                    eyebrow: query.isEmpty ? "Near you" : "Search results",
+                    title: query.isEmpty ? "Courses to play" : "\(matches.count) \(matches.count == 1 ? "course" : "courses")"
+                )
                 ForEach(matches) { course in
                     CourseHeroCard(course: course)
                 }
                 if matches.isEmpty {
-                    ContentUnavailableView(
-                        "No course found",
-                        systemImage: "map",
-                        description: Text("Try another name, city or postcode—or add it for the community.")
+                    OverParEmptyState(
+                        symbol: "map",
+                        title: "No course found",
+                        message: "Try another name, city or postcode—or add it for the community."
                     )
                     Button("Add this course") { showCreator = true }
                         .buttonStyle(PrimaryButtonStyle())
                 }
             }
-            .padding(20)
+            .padding(.horizontal, OverParTheme.Space.page)
+            .padding(.vertical, 16)
         }
         .navigationTitle("Play")
         .toolbar {
@@ -339,7 +492,7 @@ struct CoursePreviewView: View {
                     .buttonStyle(PrimaryButtonStyle())
             }
             .padding(20)
-            .background(.white)
+            .background(OverParTheme.surface)
         }
             if isAnalysingTerrain {
                 TerrainLoadingView(progress: terrainProgress, status: terrainStatus)
@@ -1114,7 +1267,7 @@ struct CourseCreatorView: View {
                 }
                 .padding(.horizontal, 14)
                 .frame(height: 50)
-                .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(OverParTheme.line))
                 Button {
                     searchMap()
@@ -1234,7 +1387,7 @@ struct CourseCreatorView: View {
                                     .foregroundStyle(hole.tee != nil && hole.greenReference != nil ? OverParTheme.forest : .orange)
                             }
                             .padding(14)
-                            .background(.white, in: RoundedRectangle(cornerRadius: 17))
+                            .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 17))
                             .overlay(RoundedRectangle(cornerRadius: 17).stroke(OverParTheme.line))
                         }
                         .buttonStyle(.plain)
@@ -1344,7 +1497,7 @@ struct CourseCreatorView: View {
             }
             .foregroundStyle(loopCount == value ? .white : OverParTheme.forest)
             .frame(maxWidth: .infinity, minHeight: 68)
-            .background(loopCount == value ? OverParTheme.forest : .white, in: RoundedRectangle(cornerRadius: 17))
+            .background(loopCount == value ? OverParTheme.forest : OverParTheme.surface, in: RoundedRectangle(cornerRadius: 17))
             .overlay(RoundedRectangle(cornerRadius: 17).stroke(loopCount == value ? OverParTheme.forest : OverParTheme.line))
         }
         .buttonStyle(.plain)
@@ -1362,7 +1515,7 @@ struct CourseCreatorView: View {
             }
             .foregroundStyle(placementTarget == value ? .white : OverParTheme.forest)
             .padding(14)
-            .background(placementTarget == value ? OverParTheme.forest : .white, in: RoundedRectangle(cornerRadius: 16))
+            .background(placementTarget == value ? OverParTheme.forest : OverParTheme.surface, in: RoundedRectangle(cornerRadius: 16))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(placementTarget == value ? OverParTheme.forest : OverParTheme.line))
         }
         .buttonStyle(.plain)

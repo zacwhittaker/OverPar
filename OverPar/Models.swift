@@ -304,6 +304,17 @@ struct CompletedRound: Codable, Identifiable {
 }
 
 struct GalleryItem: Codable, Identifiable, Hashable {
+    struct TracePoint: Codable, Hashable {
+        enum Source: String, Codable {
+            case observed
+            case extrapolated
+        }
+
+        var x: Double
+        var y: Double
+        var source: Source
+    }
+
     var id = UUID()
     var createdAt = Date()
     var title: String
@@ -313,6 +324,8 @@ struct GalleryItem: Codable, Identifiable, Hashable {
     var clubName: String?
     var isPrivate = true
     var tracerStatus = "Needs trace"
+    var tracePoints: [TracePoint]?
+    var observedPointCount: Int?
 }
 
 struct UserProfile: Codable {

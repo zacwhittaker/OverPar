@@ -32,7 +32,6 @@ struct OnboardingView: View {
         .fontDesign(.rounded)
         .foregroundStyle(OverParTheme.ink)
         .background(OverParTheme.canvas.ignoresSafeArea())
-        .preferredColorScheme(.light)
         .animation(.spring(response: 0.4, dampingFraction: 0.9), value: step)
     }
 
@@ -44,7 +43,7 @@ struct OnboardingView: View {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 17, weight: .bold))
                     .frame(width: 44, height: 44)
-                    .background(.white, in: Circle())
+                    .background(OverParTheme.surface, in: Circle())
                     .overlay(Circle().stroke(OverParTheme.line))
             }
             .accessibilityLabel("Back")
@@ -115,7 +114,7 @@ struct OnboardingView: View {
             Circle()
                 .fill(
                     LinearGradient(
-                        colors: [OverParTheme.mint, Color.white],
+                        colors: [OverParTheme.mint, OverParTheme.surface],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -281,7 +280,7 @@ struct OnboardingView: View {
                                 .foregroundStyle(store.profile.homeCourseID == course.id ? OverParTheme.forest : OverParTheme.line)
                         }
                         .padding(16)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(OverParTheme.line))
                     }
                     .buttonStyle(.plain)
@@ -358,7 +357,7 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 16)
         .frame(minHeight: 56)
-        .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(OverParTheme.line, lineWidth: 1.2))
     }
 
@@ -374,14 +373,14 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 16)
         .frame(minHeight: 56)
-        .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(OverParTheme.line, lineWidth: 1.2))
     }
 
     private func onboardingCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .padding(16)
-            .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 20).stroke(OverParTheme.line))
     }
 

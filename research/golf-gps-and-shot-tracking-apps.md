@@ -237,6 +237,33 @@ The [US App Store listing](https://apps.apple.com/us/app/smoothswing/id151458643
 
 Reviews and community reports consistently praise its unusually easy, immediate trace when conditions are right. Repeated reported limitations include heat shutdown, white-ball dependence, occasional incorrect object tracking (for example grass/debris), imperfect high-speed tracking and a watermark/free-use limitation. Reviews are anecdotal rather than controlled tests, but repeated patterns are useful product evidence.
 
+### 4.1.1 Capture-interface verification — 30 July 2026
+
+Direct comparison against the supplied current SmoothSwing capture screen adds useful observable behaviour:
+
+- the camera feed is the screen, rather than being hidden behind a separate explanatory page;
+- a large golfer/ball-position template remains over the live preview before capture;
+- both left- and right-handed visual positions are represented without requiring a settings detour;
+- a central arrow/ball-origin cue establishes the launch region;
+- the record control is a conventional large camera shutter;
+- elapsed recording time remains visible;
+- tracer colour is accessible beside the shutter;
+- the user is not asked to mark impact, apex or landing before the automatic result;
+- the product constrains the scene before capture instead of asking users to repair it afterwards.
+
+The App Store still explicitly claims “World's First Real-Time Shot Tracer” and requires white balls. It also continues to exclude iPhone 8, 8 Plus and X. This supports a constrained real-time design, but does not reveal SmoothSwing's proprietary detector, temporal model, thresholds or fitting logic.
+
+The critical UX lesson is that the template is part of the vision system, not decoration. It narrows:
+
+- expected golfer/body region;
+- stationary ball origin;
+- launch direction;
+- first candidate search window;
+- regions dominated by club/body motion;
+- the coordinate frame in which a trace can remain stable.
+
+OverPar should therefore validate alignment on the live feed, keep the camera visible, start automatic temporal tracking at impact and draw accepted observations immediately. A canned curve before recording is actively misleading and provides none of SmoothSwing's actual value.
+
 ### 4.2 How it most likely works — explicitly an inference
 
 SmoothSwing does not publicly document its vision stack. Based on its real-time claim, white-ball constraint, hardware exclusions and observed failure modes, a plausible on-device pipeline is:
@@ -291,6 +318,18 @@ The ideal successor should preserve “point, swing, receive tracer” while add
 - thermal adaptation: lower preview resolution/frame rate or defer refinement rather than a surprise hard stop;
 - accessible trace colours, thickness and glow;
 - separate “visual trace” and “measured shot data” labels.
+
+For Release 1, manual correction is a recovery path, not a required step in the happy path. The successful flow is:
+
+```text
+align golfer/ball template
+  -> press record
+  -> detect swing/impact
+  -> associate white-ball observations across frames
+  -> draw the trace during capture
+  -> save original + trace metadata automatically
+  -> open/replay/remove from Gallery
+```
 
 ### 4.6 GPS portion of SmoothSwing
 

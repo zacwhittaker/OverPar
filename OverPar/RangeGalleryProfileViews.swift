@@ -1,5 +1,230 @@
+import AVKit
 import SwiftUI
 import UIKit
+
+struct ResearchDrivingRangeView: View {
+    @EnvironmentObject private var store: AppStore
+    @State private var selectedClubID: UUID?
+    @State private var showRecorder = false
+    @State private var showBag = false
+
+    private var club: GolfClub? {
+        store.activeBag.first { $0.id == selectedClubID } ?? store.activeBag.first
+    }
+    private var hits: [RangeHit] {
+        guard let club else { return [] }
+        return store.rangeHits.filter { $0.clubID == club.id && $0.kind == .carry && !$0.isMishit }.suffix(20)
+    }
+    private var unit: String { store.profile.units == "yards" ? "yd" : "m" }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text("Driving Range")
+                        .font(.system(size: 31, weight: .heavy, design: .rounded))
+                    Spacer()
+                    Button { showBag = true } label: {
+                        Image(systemName: "gearshape").font(.title3)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 10)
+
+                if let club {
+                    Text("SELECTED CLUB")
+                        .font(.caption2.bold()).tracking(1.1)
+                        .foregroundStyle(OverParTheme.forest)
+                        .padding(.top, 24)
+                    HStack(alignment: .bottom) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(club.iconLabel.lowercased())
+                                .font(.system(size: 78, weight: .heavy, design: .rounded))
+                                .foregroundStyle(OverParTheme.forest)
+                            Text(club.showsNickname ? "\(club.name)  ·  \(club.displayName)" : club.name)
+                                .font(.caption).foregroundStyle(OverParTheme.secondary)
+                        }
+                        Spacer()
+                        Button { showRecorder = true } label: {
+                            Label("Record carry", systemImage: "record.circle")
+                                .font(.headline)
+                                .padding(.horizontal, 17)
+                                .frame(height: 52)
+                                .foregroundStyle(.white)
+                                .background(OverParTheme.forest, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    HStack {
+                        Text("LAST \(hits.count) SHOTS")
+                        Spacer()
+                        Text("Carry \(store.profile.units.capitalized)")
+                    }
+                    .font(.caption2.bold())
+                    .padding(.top, 28)
+
+                    CarryPlot(values: hits.map { displayed($0.metres) })
+                        .frame(height: 205)
+                        .padding(.top, 6)
+
+                    if let stats = store.stats(for: club) {
+                        HStack(alignment: .top, spacing: 0) {
+                            rangeMetric(Int(stats.average.rounded()), "Average carry")
+                            rangeMetric(Int(((stats.high - stats.low) / 2).rounded()), "Dispersion (±)")
+                            rangeMetric(confidence(for: stats.count), "Confidence", suffix: "%")
+                        }
+                        .padding(.top, 12)
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("CARRY RANGE (\(store.profile.units.uppercased()))")
+                                .font(.caption2.bold())
+                            GeometryReader { proxy in
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(OverParTheme.line).frame(height: 12)
+                                    Capsule().fill(OverParTheme.secondaryGreen.opacity(0.65))
+                                        .frame(width: proxy.size.width * 0.62, height: 12)
+                                    Rectangle().fill(OverParTheme.forest).frame(width: 2, height: 24)
+                                        .offset(x: proxy.size.width * 0.49)
+                                }
+                            }
+                            .frame(height: 24)
+                            HStack {
+                                Text("\(Int(stats.low.rounded()))")
+                                Spacer()
+                                Text("\(Int(stats.playing.rounded()))").fontWeight(.bold)
+                                Spacer()
+                                Text("\(Int(stats.high.rounded()))")
+                            }
+                            .font(.caption).monospacedDigit()
+                        }
+                        .padding(.top, 28)
+                    } else {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("No carry pattern yet").font(.title3.bold())
+                            Text("Record full swings to reveal your dispersion, typical range and confidence.")
+                                .font(.subheadline).foregroundStyle(OverParTheme.secondary)
+                        }
+                        .padding(.vertical, 24)
+                    }
+
+                    Divider().padding(.top, 24)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(store.activeBag) { item in
+                                Button {
+                                    withAnimation(OverParTheme.Motion.selection) { selectedClubID = item.id }
+                                } label: {
+                                    Text(item.iconLabel)
+                                        .font(.headline)
+                                        .frame(minWidth: 54, minHeight: 44)
+                                        .foregroundStyle(item.id == club.id ? .white : OverParTheme.secondary)
+                                        .background(item.id == club.id ? OverParTheme.forest : .clear, in: RoundedRectangle(cornerRadius: 12))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .padding(.top, 10)
+                } else {
+                    VStack(alignment: .leading, spacing: 15) {
+                        Image(systemName: "golf.club").font(.system(size: 36)).foregroundStyle(OverParTheme.forest)
+                        Text("Build your bag").font(.title2.bold())
+                        Text("Add the clubs you play before recording carries.")
+                            .foregroundStyle(OverParTheme.secondary)
+                        Button("Manage bag") { showBag = true }.buttonStyle(PrimaryButtonStyle())
+                    }
+                    .padding(.top, 54)
+                }
+            }
+            .frame(width: max(0, UIScreen.main.bounds.width - 40), alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 28)
+        }
+        .navigationBarHidden(true)
+        .sheet(isPresented: $showBag) { BagManagerView() }
+        .sheet(isPresented: $showRecorder) {
+            if let club { CarryRecorderSheet(club: club) }
+        }
+        .onAppear { selectedClubID = selectedClubID ?? store.activeBag.first?.id }
+        .overParPage()
+    }
+
+    private func displayed(_ metres: Double) -> Double {
+        store.profile.units == "yards" ? metres * 1.09361 : metres
+    }
+    private func confidence(for count: Int) -> Int { min(96, 28 + count * 4) }
+    private func rangeMetric(_ value: Int, _ label: String, suffix: String = "") -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text("\(value)").font(.system(size: 35, weight: .medium, design: .rounded)).monospacedDigit()
+                Text(suffix.isEmpty ? unit : suffix).font(.subheadline)
+            }
+            Text(label).font(.caption2).foregroundStyle(OverParTheme.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct CarryPlot: View {
+    let values: [Double]
+    var body: some View {
+        Canvas { context, size in
+            for row in 0...4 {
+                let y = size.height * CGFloat(row) / 4
+                var line = Path()
+                line.move(to: CGPoint(x: 34, y: y))
+                line.addLine(to: CGPoint(x: size.width, y: y))
+                context.stroke(line, with: .color(OverParTheme.line), lineWidth: 0.7)
+            }
+            guard !values.isEmpty else { return }
+            let minV = max(0, (values.min() ?? 0) - 20)
+            let span = max(40, (values.max() ?? 0) - minV + 20)
+            for (index, value) in values.enumerated() {
+                let x = 48 + CGFloat((index * 47) % max(1, Int(size.width - 60)))
+                let y = size.height - CGFloat((value - minV) / span) * (size.height - 20) - 10
+                context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: 7, height: 7)), with: .color(OverParTheme.forest))
+            }
+        }
+    }
+}
+
+private struct CarryRecorderSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var store: AppStore
+    let club: GolfClub
+    @State private var distance = ""
+    @State private var mishit = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 18) {
+                Text(club.displayName).font(.title2.bold())
+                TextField("0", text: $distance)
+                    .keyboardType(.decimalPad)
+                    .font(.system(size: 68, weight: .heavy, design: .rounded))
+                    .multilineTextAlignment(.center)
+                Text(store.profile.units).foregroundStyle(OverParTheme.secondary)
+                Toggle("Mark as mishit", isOn: $mishit)
+                Button("Save carry") {
+                    guard let value = Double(distance) else { return }
+                    store.addRangeHit(clubID: club.id, displayedDistance: value, kind: .carry, mishit: mishit)
+                    dismiss()
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(Double(distance) == nil)
+                Spacer()
+            }
+            .padding(24)
+            .navigationTitle("Record carry")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .overParPage()
+        }
+        .presentationDetents([.medium])
+    }
+}
 
 struct DrivingRangeView: View {
     @EnvironmentObject private var store: AppStore
@@ -16,6 +241,22 @@ struct DrivingRangeView: View {
         ScrollView {
             VStack(spacing: 20) {
                 SectionHeading(eyebrow: "Calibrate your game", title: "Driving Range")
+                OverParCard(style: .secondary) {
+                    HStack(spacing: 14) {
+                        Image(systemName: "scope")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(OverParTheme.forest)
+                            .frame(width: 48, height: 48)
+                            .background(OverParTheme.surface, in: Circle())
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Build a bag you can trust")
+                                .font(.headline)
+                            Text("Real carry first. Estimates stay clearly labelled.")
+                                .font(.caption)
+                                .foregroundStyle(OverParTheme.secondary)
+                        }
+                    }
+                }
                 HStack {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Your locker")
@@ -29,16 +270,16 @@ struct DrivingRangeView: View {
                         Image(systemName: "slider.horizontal.3")
                             .font(.headline)
                             .frame(width: 44, height: 44)
-                            .background(.white, in: Circle())
+                            .background(OverParTheme.surface, in: Circle())
                             .overlay(Circle().stroke(OverParTheme.line))
                     }
                 }
                 if store.activeBag.isEmpty {
                     OverParCard {
-                        ContentUnavailableView(
-                            "Your locker is empty",
-                            systemImage: "cabinet.fill",
-                            description: Text("Add the clubs you carry to begin recording distances.")
+                        OverParEmptyState(
+                            symbol: "cabinet.fill",
+                            title: "Your locker is empty",
+                            message: "Add the clubs you carry to begin recording distances."
                         )
                     }
                 } else {
@@ -435,7 +676,7 @@ private struct ClubEditorView: View {
             TextField(title, text: text)
                 .keyboardType(keyboard)
                 .padding(14)
-                .background(OverParTheme.canvas, in: RoundedRectangle(cornerRadius: 15))
+                .background(OverParTheme.secondarySurface, in: RoundedRectangle(cornerRadius: 15))
                 .overlay(RoundedRectangle(cornerRadius: 15).stroke(OverParTheme.line))
         }
     }
@@ -443,30 +684,40 @@ private struct ClubEditorView: View {
 
 struct GalleryView: View {
     @EnvironmentObject private var store: AppStore
+    @State private var pendingDelete: GalleryItem?
 
     var body: some View {
         ScrollView {
             VStack(spacing: 18) {
-                SectionHeading(eyebrow: "Private by default", title: "Gallery")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("PRIVATE BY DEFAULT")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .tracking(1.4)
+                        .foregroundStyle(OverParTheme.secondaryGreen)
+                    Text("Your best swings,\nkept beautifully.")
+                        .font(.system(size: 34, weight: .heavy, design: .rounded))
+                        .tracking(-0.8)
+                        .lineSpacing(-2)
+                    Text("Original clips and editable traces live together.")
+                        .foregroundStyle(OverParTheme.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 if store.gallery.isEmpty {
-                    ContentUnavailableView(
-                        "Record your first shot",
-                        systemImage: "video.badge.plus",
-                        description: Text("Use Record Shot during a round. Original video is kept even if tracing needs correction.")
-                    )
-                    .padding(.top, 80)
+                    OverParCard(style: .secondary) {
+                        OverParEmptyState(
+                            symbol: "video.badge.plus",
+                            title: "Record your first shot",
+                            message: "Use Record Shot during a round. Your original stays safe even when a trace needs correction."
+                        )
+                    }
                 } else {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
                         ForEach(store.gallery) { item in
                             NavigationLink {
-                                GalleryDetailView(item: item)
+                                GalleryDetailView(itemID: item.id)
                             } label: {
                                 VStack(alignment: .leading, spacing: 10) {
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: 18).fill(OverParTheme.forestDark.gradient)
-                                        Image(systemName: "play.circle.fill")
-                                            .font(.system(size: 42)).foregroundStyle(.white)
-                                    }
+                                    GalleryThumbnail(item: item)
                                     .aspectRatio(0.85, contentMode: .fit)
                                     Text(item.title).font(.headline)
                                     Text([item.courseName, item.holeNumber.map { "Hole \($0)" }].compactMap { $0 }.joined(separator: " · "))
@@ -475,6 +726,13 @@ struct GalleryView: View {
                                 }
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    pendingDelete = item
+                                } label: {
+                                    Label("Remove clip", systemImage: "trash")
+                                }
+                            }
                         }
                     }
                 }
@@ -483,45 +741,203 @@ struct GalleryView: View {
         }
         .navigationTitle("Gallery")
         .overParPage()
+        .confirmationDialog(
+            "Remove this clip?",
+            isPresented: Binding(
+                get: { pendingDelete != nil },
+                set: { if !$0 { pendingDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Remove clip", role: .destructive) {
+                if let item = pendingDelete {
+                    _ = store.deleteGalleryItem(id: item.id)
+                }
+                pendingDelete = nil
+            }
+            Button("Cancel", role: .cancel) { pendingDelete = nil }
+        } message: {
+            Text("This permanently removes the private source video and its live trace from this device.")
+        }
     }
 }
 
 struct GalleryDetailView: View {
-    let item: GalleryItem
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var store: AppStore
+    let itemID: UUID
     @State private var traceColour = Color.yellow
+    @State private var showDeleteConfirmation = false
+
+    private var item: GalleryItem? {
+        store.gallery.first(where: { $0.id == itemID })
+    }
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 18) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 24).fill(Color.black.gradient)
-                    Path { path in
-                        path.move(to: CGPoint(x: 65, y: 440))
-                        path.addCurve(to: CGPoint(x: 290, y: 75), control1: CGPoint(x: 115, y: 170), control2: CGPoint(x: 230, y: 90))
+            if let item {
+                VStack(spacing: 18) {
+                    GalleryVideoPlayer(item: item, traceColour: traceColour)
+                        .frame(height: 520)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .padding(.horizontal)
+                    OverParCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(item.title).font(.title2.bold())
+                                    Text([item.courseName, item.holeNumber.map { "Hole \($0)" }]
+                                        .compactMap { $0 }.joined(separator: " · "))
+                                        .foregroundStyle(OverParTheme.secondary)
+                                }
+                                Spacer()
+                                StatusPill(text: item.tracerStatus, symbol: "scribble.variable")
+                            }
+                            Label(item.isPrivate ? "Only you" : "Shared", systemImage: "lock.fill")
+                            if let observed = item.observedPointCount, observed > 0 {
+                                Text("\(observed) live ball observations were linked across consecutive frames. Any completed tail remains visualised rather than measured.")
+                                    .font(.caption)
+                                    .foregroundStyle(OverParTheme.secondary)
+                            } else {
+                                Text("The original video is safe, but no reliable live ball sequence was found.")
+                                    .font(.caption)
+                                    .foregroundStyle(OverParTheme.secondary)
+                            }
+                            ColorPicker("Trace colour", selection: $traceColour)
+                            Divider()
+                            Button(role: .destructive) {
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Remove clip from Gallery", systemImage: "trash")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
                     }
-                    .stroke(traceColour, style: StrokeStyle(lineWidth: 5, lineCap: .round))
-                    Text("Editable visualised path")
-                        .font(.caption.bold()).foregroundStyle(.white)
-                        .padding(8).background(.black.opacity(0.6), in: Capsule())
-                        .offset(y: 215)
+                    .padding(.horizontal)
                 }
-                .frame(height: 520)
-                .padding(.horizontal)
-                OverParCard {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(item.title).font(.title2.bold())
-                        Label(item.isPrivate ? "Only you" : "Shared", systemImage: "lock.fill")
-                        Text("Observed, interpolated and manually adjusted path segments remain editable metadata. The original video is unchanged.")
-                            .font(.caption).foregroundStyle(OverParTheme.secondary)
-                        ColorPicker("Trace colour", selection: $traceColour)
-                    }
-                }
-                .padding(.horizontal)
+            } else {
+                ContentUnavailableView("Clip removed", systemImage: "trash")
+                    .padding(.top, 100)
             }
         }
         .navigationTitle("Shot")
         .overParPage()
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .disabled(item == nil)
+            }
+        }
+        .confirmationDialog("Remove this clip?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Remove clip", role: .destructive) {
+                if store.deleteGalleryItem(id: itemID) {
+                    dismiss()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently removes the private source video and its live trace from this device.")
+        }
     }
+}
+
+private struct GalleryThumbnail: View {
+    let item: GalleryItem
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18).fill(OverParTheme.forestDark.gradient)
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+            }
+            GalleryTraceOverlay(points: item.tracePoints ?? [], colour: .yellow)
+                .padding(10)
+            Image(systemName: "play.circle.fill")
+                .font(.system(size: 42))
+                .foregroundStyle(.white)
+                .shadow(radius: 5)
+        }
+        .clipped()
+        .task(id: item.localVideoFilename) {
+            guard let url = galleryVideoURL(filename: item.localVideoFilename) else { return }
+            image = await videoThumbnail(url: url)
+        }
+    }
+}
+
+private struct GalleryVideoPlayer: View {
+    let item: GalleryItem
+    let traceColour: Color
+    @State private var player: AVPlayer?
+
+    var body: some View {
+        ZStack {
+            Color.black
+            if let player {
+                VideoPlayer(player: player)
+            } else {
+                ProgressView().tint(.white)
+            }
+            GalleryTraceOverlay(points: item.tracePoints ?? [], colour: traceColour)
+                .allowsHitTesting(false)
+                .padding(12)
+        }
+        .task(id: item.localVideoFilename) {
+            if let url = galleryVideoURL(filename: item.localVideoFilename) {
+                player = AVPlayer(url: url)
+            }
+        }
+        .onDisappear {
+            player?.pause()
+            player = nil
+        }
+    }
+}
+
+private struct GalleryTraceOverlay: View {
+    let points: [GalleryItem.TracePoint]
+    let colour: Color
+
+    var body: some View {
+        GeometryReader { proxy in
+            Path { path in
+                for (index, point) in points.enumerated() {
+                    let value = CGPoint(x: point.x * proxy.size.width, y: point.y * proxy.size.height)
+                    if index == 0 { path.move(to: value) } else { path.addLine(to: value) }
+                }
+            }
+            .stroke(colour, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+        }
+    }
+}
+
+private func galleryVideoURL(filename: String?) -> URL? {
+    guard let filename else { return nil }
+    let safeFilename = URL(fileURLWithPath: filename).lastPathComponent
+    let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("Gallery", isDirectory: true)
+        .appendingPathComponent(safeFilename)
+    return FileManager.default.fileExists(atPath: url.path) ? url : nil
+}
+
+private func videoThumbnail(url: URL) async -> UIImage? {
+    await Task.detached(priority: .utility) {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 600, height: 600)
+        guard let image = try? generator.copyCGImage(at: CMTime(seconds: 0.15, preferredTimescale: 600), actualTime: nil)
+        else { return nil }
+        return UIImage(cgImage: image)
+    }.value
 }
 
 struct ProfileView: View {
@@ -530,24 +946,42 @@ struct ProfileView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
-                HStack {
-                    Spacer()
-                    NavigationLink { SettingsView() } label: { Image(systemName: "gearshape.fill") }
-                }
-                Circle()
-                    .fill(OverParTheme.forest.gradient)
-                    .frame(width: 104, height: 104)
-                    .overlay(Text(initials).font(.largeTitle.bold()).foregroundStyle(.white))
-                VStack(spacing: 4) {
-                    Text(store.profile.displayName)
-                        .font(.system(.largeTitle, design: .rounded, weight: .heavy))
-                    Text("@\(store.profile.username)").foregroundStyle(OverParTheme.secondary)
-                    Text(store.profile.biography).multilineTextAlignment(.center).padding(.top, 6)
-                    Label(store.profile.broadLocation, systemImage: "mappin")
-                        .font(.subheadline).foregroundStyle(OverParTheme.secondary)
+                ZStack(alignment: .topTrailing) {
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill(OverParTheme.forestDark.gradient)
+                    CourseArtwork()
+                        .opacity(0.18)
+                        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+                    VStack(spacing: 12) {
+                        Circle()
+                            .fill(.white.opacity(0.16))
+                            .frame(width: 104, height: 104)
+                            .overlay(Text(initials).font(.largeTitle.bold()).foregroundStyle(.white))
+                            .overlay(Circle().stroke(.white.opacity(0.35), lineWidth: 2))
+                        VStack(spacing: 4) {
+                            Text(store.profile.displayName)
+                                .font(.system(.title, design: .rounded, weight: .heavy))
+                            Text("@\(store.profile.username)").foregroundStyle(.white.opacity(0.76))
+                            Text(store.profile.biography)
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 5)
+                            Label(store.profile.broadLocation, systemImage: "mappin")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.76))
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 28)
+                    NavigationLink { SettingsView() } label: {
+                        Image(systemName: "gearshape.fill")
+                    }
+                    .buttonStyle(IconButtonStyle())
+                    .padding(14)
                 }
                 NavigationLink("Edit profile") { EditProfileView() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(SecondaryButtonStyle())
                 if let homeID = store.profile.homeCourseID,
                    let home = store.courses.first(where: { $0.id == homeID }) {
                     SectionHeading(eyebrow: "Pinned home", title: "Home course")

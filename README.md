@@ -25,7 +25,7 @@ The current bundle identifier is `com.zacwhittaker.overpar`. Change it before si
 - Google satellite hole logging with a keyless Apple fallback and interactive tee/green-reference placement
 - Core Location foreground permission, nearest-course seam and stable multi-sample GPS capture
 - Offline-first atomic JSON persistence for courses, active rounds, shots, range hits and Gallery metadata
-- Native camera/video capture with private local media preservation
+- Native fixed-camera shot capture with golfer alignment, live white-ball tracing and private source-video preservation
 - Course revisions pinned into rounds
 - Separated shot direction, ball flight, strike quality and finishing lie
 - Rules-aware out-of-bounds/lost-ball relief
@@ -33,7 +33,7 @@ The current bundle identifier is `com.zacwhittaker.overpar`. Change it before si
 - Profile, Settings, privacy declarations and Release 1.0 credits
 - Supabase/PostGIS migration with Row Level Security and private Storage policies
 
-The manual visual tracer stores an editable visualised path and preserves the source video. It does not claim measured carry, apex, spin or full 3D flight.
+The live tracer analyses consecutive camera frames, renders accepted white-ball observations during capture, stores observed versus extrapolated trace metadata and preserves the source video. It does not claim measured carry, apex, spin or full 3D flight. Gallery clips can be played and permanently removed with confirmation.
 
 ## Backend setup
 

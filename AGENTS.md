@@ -22,8 +22,9 @@ Before planning an implementation, creating scaffolding, installing dependencies
 8. Read [`planning/driving-range-and-club-recommendations.md`](planning/driving-range-and-club-recommendations.md) completely.
 9. Read [`planning/round-companion-and-gallery.md`](planning/round-companion-and-gallery.md) completely.
 10. Read [`planning/interface-design-system.md`](planning/interface-design-system.md) completely.
-11. Inspect the existing repository, current architecture, configuration and relevant tests.
-12. State in its working update that the documents were read and identify which requirements affect the current task.
+11. For every interface, motion, branding, onboarding, screenshot or visual-polish task, read [`planning/design-review-learnings.md`](planning/design-review-learnings.md) completely.
+12. Inspect the existing repository, current architecture, configuration and relevant tests.
+13. State in its working update that the documents were read and identify which requirements affect the current task.
 
 Do not begin code changes after reading only headings, summaries or excerpts. The complete reports contain important distinctions, safety requirements, phased architecture and implementation constraints.
 
@@ -159,6 +160,8 @@ When logging shot results, keep target-relative direction, ball-flight shape, st
 - component, motion, haptic, accessibility and outdoor-use requirements.
 
 Use it before implementing UI. Liquid Glass belongs primarily to navigation and floating controls, not ordinary content cards. Settings remain distinct from the public-facing Profile surface.
+
+[`planning/design-review-learnings.md`](planning/design-review-learnings.md) is the mandatory visual-quality preflight for all design tasks. It records screenshot-review failures and concrete spacing, composition, reference-fidelity and proof requirements learned during implementation. Read it before changing UI and use its checklist before presenting screenshots.
 
 ### Conflict handling
 
@@ -321,13 +324,14 @@ capability and scene check
 
 Implementation priorities:
 
-1. Build a reliable manual, non-destructive tracer editor.
-2. Add constrained fixed-camera, daylight, white-ball automatic tracking.
-3. Use temporal/consecutive-frame evidence rather than only a per-frame generic detector.
-4. Provide an immediate provisional trace and a better post-process pass.
-5. Add confidence-aware one-step corrections.
-6. Treat handheld panning and world-anchored transforms as a later, separately tested capability.
-7. Expand device, lighting and ball support only after measured validation.
+1. Make guided fixed-camera, daylight, white-ball automatic tracking the Release 1 happy path.
+2. Show the real camera with a golfer/ball alignment template and draw accepted observations during capture.
+3. Use temporal/consecutive-frame evidence rather than a canned curve or only a per-frame generic detector.
+4. Preserve the original video and save it automatically to Gallery without requiring manual editing.
+5. Provide an immediate live/provisional trace and a better post-process pass.
+6. Retain a confidence-aware manual correction fallback for automatic failure.
+7. Treat handheld panning and world-anchored transforms as a later, separately tested capability.
+8. Expand device, lighting and ball support only after measured validation.
 
 Do not represent a smooth fitted spline as proof that every part of the ball flight was observed.
 

@@ -37,9 +37,6 @@ struct OverParApp: App {
                 .environmentObject(store)
                 .environmentObject(location)
                 .tint(OverParTheme.forest)
-                // Release 1.0 uses a deliberately light, outdoor-readable clubhouse theme.
-                // This also prevents adaptive system surfaces becoming black in device Dark Mode.
-                .preferredColorScheme(.light)
         }
     }
 }
@@ -82,16 +79,16 @@ private struct OverParLaunchView: View {
     var body: some View {
         ZStack {
             OverParTheme.canvas.ignoresSafeArea()
-            Circle()
-                .fill(OverParTheme.mint)
-                .frame(width: 300, height: 300)
+            CourseArtwork()
+                .frame(width: 320, height: 320)
+                .clipShape(Circle())
                 .scaleEffect(isAnimating ? 1.04 : 0.94)
-                .opacity(isAnimating ? 0.78 : 0.5)
+                .opacity(isAnimating ? 0.42 : 0.22)
 
             VStack(spacing: 24) {
                 ZStack {
                     Circle()
-                        .fill(.white)
+                        .fill(OverParTheme.surface)
                         .frame(width: 126, height: 126)
                         .shadow(color: OverParTheme.forest.opacity(0.12), radius: 24, y: 10)
                     Image(systemName: "figure.golf")

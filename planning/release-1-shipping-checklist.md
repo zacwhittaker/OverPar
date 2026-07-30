@@ -194,8 +194,10 @@ After the values and accounts above exist:
 6. Connect `ShippingConfiguration.xcconfig`.
 7. Build on the newest supported iPhone simulator and at least one real iPhone.
 8. Test denied/approximate/precise location, camera denial, airplane mode, app termination during a round, low storage, large Dynamic Type and Reduce Motion.
-9. Run unit/UI tests and archive validation.
-10. Create the App Store Connect record, upload the archive, answer export-compliance questions, use TestFlight, then submit for review.
+9. Run the live tracer on supported physical iPhones using fixed framing, white balls and a labelled daylight shot corpus. Measure impact/launch detection, false traces, observation continuity, thermal behaviour and original-video preservation.
+10. Verify Gallery video playback, live-trace metadata and clip removal on device, including missing-file and deletion-failure behaviour.
+11. Run unit/UI tests and archive validation.
+12. Create the App Store Connect record, upload the archive, answer export-compliance questions, use TestFlight, then submit for review.
 
 ## Things that cannot be made production-real before Zac supplies them
 
@@ -205,6 +207,6 @@ After the values and accounts above exist:
 - permanent cross-device community sync without the Supabase project;
 - public legal URLs without approved policy text;
 - App Store signing/upload without Developer Program membership;
-- automatic visual ball tracking without trained/validated on-device models and a device test corpus.
+- a defensible claim that automatic visual ball tracking is release-quality without a labelled physical-device test corpus. Release 1 now contains a constrained fixed-camera, white-ball live-analysis implementation, but its thresholds and supported-device boundary must be validated and calibrated on real shots before submission.
 
 These are external identities, credentials, legal decisions or validation data—not UI placeholders. The native app retains working local/offline behaviour while they are being configured.
