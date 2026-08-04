@@ -1107,7 +1107,7 @@ struct SettingsView: View {
                     Label("OverPar", systemImage: "figure.golf")
                         .font(.system(.title3, design: .rounded, weight: .bold))
                         .foregroundStyle(OverParTheme.forest)
-                    Text("Build version 1.0.0 · Release 1.0")
+                    Text("Version \(appVersion) (\(buildNumber))")
                     Text("Developed by Zac Whittaker")
                         .font(.headline)
                     Text("Made with care in Leeds.")
@@ -1119,6 +1119,14 @@ struct SettingsView: View {
         }
         .overParFormPage()
         .navigationTitle("Settings")
+    }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
     }
 
     private var permissionText: String {

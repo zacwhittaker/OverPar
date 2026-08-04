@@ -361,6 +361,7 @@ Do not represent a smooth fitted spline as proof that every part of the ball fli
 
 ### While changing code
 
+- Increment `CURRENT_PROJECT_VERSION` for every user-facing application update. The Settings About section must display the live `CFBundleShortVersionString` and `CFBundleVersion` values rather than hard-coded release copy.
 - Keep source, migrations, policies and tests in the same task where practical.
 - Use strict typing.
 - Make state transitions explicit.
