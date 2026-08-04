@@ -28,6 +28,7 @@ enum GoogleMapsConfiguration {
 @main
 struct OverParApp: App {
     @UIApplicationDelegateAdaptor(OverParAppDelegate.self) private var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store = AppStore()
     @StateObject private var location = LocationService()
 
@@ -37,6 +38,11 @@ struct OverParApp: App {
                 .environmentObject(store)
                 .environmentObject(location)
                 .tint(OverParTheme.forest)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                store.flushPersistence()
+            }
         }
     }
 }
@@ -65,8 +71,8 @@ private struct RootView: View {
         .animation(.spring(response: 0.42, dampingFraction: 0.86), value: store.profile.hasCompletedOnboarding)
         .task {
             guard isShowingLaunch else { return }
-            try? await Task.sleep(for: .milliseconds(1550))
-            withAnimation(.easeInOut(duration: 0.38)) {
+            try? await Task.sleep(for: .milliseconds(280))
+            withAnimation(.easeOut(duration: 0.18)) {
                 isShowingLaunch = false
             }
         }

@@ -80,6 +80,41 @@ struct GolfCourse: Codable, Identifiable, Hashable {
     }
 }
 
+struct CourseTransferPackage: Codable {
+    static let currentFormatVersion = 1
+
+    var formatVersion: Int
+    var exportedAt: Date
+    var course: GolfCourse
+
+    init(course: GolfCourse) {
+        formatVersion = Self.currentFormatVersion
+        exportedAt = Date()
+        var portableCourse = course
+        portableCourse.coverPhotoFilename = nil
+        self.course = portableCourse
+    }
+}
+
+enum CourseImportResult {
+    case imported(GolfCourse)
+    case alreadyExists(String)
+}
+
+enum CourseTransferError: LocalizedError {
+    case unsupportedFormat
+    case invalidCourse(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .unsupportedFormat:
+            "This course file uses an unsupported format."
+        case .invalidCourse(let reason):
+            "This course file is invalid: \(reason)"
+        }
+    }
+}
+
 enum ClubCategory: String, Codable, CaseIterable, Identifiable {
     case driver = "Driver"
     case miniDriver = "Mini Driver"
@@ -317,31 +352,6 @@ struct CompletedRound: Codable, Identifiable {
     var shotCount: Int { shots.values.reduce(0) { $0 + $1.count } }
 }
 
-struct GalleryItem: Codable, Identifiable, Hashable {
-    struct TracePoint: Codable, Hashable {
-        enum Source: String, Codable {
-            case observed
-            case extrapolated
-        }
-
-        var x: Double
-        var y: Double
-        var source: Source
-    }
-
-    var id = UUID()
-    var createdAt = Date()
-    var title: String
-    var localVideoFilename: String?
-    var courseName: String?
-    var holeNumber: Int?
-    var clubName: String?
-    var isPrivate = true
-    var tracerStatus = "Needs trace"
-    var tracePoints: [TracePoint]?
-    var observedPointCount: Int?
-}
-
 struct UserProfile: Codable {
     var displayName = "Zac Whittaker"
     var username = "zacwhittaker"
@@ -359,7 +369,6 @@ struct AppData: Codable {
     var courses: [GolfCourse]
     var clubs: [GolfClub]
     var rangeHits: [RangeHit]
-    var gallery: [GalleryItem]
     var activeRound: ActiveRound?
     var completedRounds: [CompletedRound]?
 }

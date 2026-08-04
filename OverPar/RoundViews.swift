@@ -1,9 +1,7 @@
-import AVFoundation
 import CoreLocation
 @preconcurrency import GoogleMaps
 import SwiftUI
 import UIKit
-import UniformTypeIdentifiers
 
 struct RoundSetupView: View {
     @EnvironmentObject private var store: AppStore
@@ -91,7 +89,6 @@ struct ActiveRoundView: View {
     @EnvironmentObject private var location: LocationService
     @State private var pendingShot: LoggedShot?
     @State private var showResult = false
-    @State private var showCamera = false
     @State private var showFinishRound = false
     @State private var mapMode: RoundMapMode = .none
     @State private var completedRoundOverview: CompletedRound?
@@ -168,7 +165,12 @@ struct ActiveRoundView: View {
         .animation(.spring(response: 0.34, dampingFraction: 0.86), value: mapMode)
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .onAppear { location.startRoundUpdates() }
+        .onAppear {
+            location.startRoundUpdates()
+            publishWatchRound()
+        }
+        .onChange(of: location.location) { _, _ in publishWatchRound() }
+        .onChange(of: round?.holeNumber) { _, _ in publishWatchRound() }
         .task(id: round?.courseID) {
             if let coordinate = course?.referenceCoordinate {
                 await store.refreshPlayingConditions(at: coordinate)
@@ -191,9 +193,6 @@ struct ActiveRoundView: View {
                 pendingShot?.clubID = clubID
                 showShotClubPicker = false
             }
-        }
-        .fullScreenCover(isPresented: $showCamera) {
-            ShotCameraView()
         }
         .confirmationDialog(
             "End this round?",
@@ -219,6 +218,22 @@ struct ActiveRoundView: View {
             RoundOverviewView(round: completed)
         }
         .overParPage()
+    }
+
+    private func publishWatchRound() {
+        guard let round, let hole else {
+            WatchRoundSync.shared.clear()
+            return
+        }
+        let recommendation = distance.flatMap {
+            store.recommendedClub(distanceMetres: $0, hole: hole, player: targetLineOrigin)
+        }
+        WatchRoundSync.shared.publish(
+            round: round,
+            hole: hole,
+            units: store.profile.units,
+            recommendation: recommendation
+        )
     }
 
     private func roundHeader(round: ActiveRound, course: GolfCourse, hole: Hole) -> some View {
@@ -452,36 +467,24 @@ struct ActiveRoundView: View {
                 .foregroundStyle(OverParTheme.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            HStack(spacing: 10) {
-                Button {
-                    logOrFinishShot()
-                } label: {
-                    Label(
-                        playerCoordinate == nil
-                            ? "Set position first"
-                            : pendingShot == nil ? "Log shot" : "Finish shot",
-                        systemImage: pendingShot == nil ? "location.north.fill" : "checkmark.circle.fill"
-                    )
-                    .font(.system(.subheadline, design: .rounded, weight: .bold))
-                    .foregroundStyle(OverParTheme.forestDark)
-                    .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(Color.white.opacity(0.5), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.8), lineWidth: 0.8))
-                }
-                .buttonStyle(.plain)
-                .disabled(playerCoordinate == nil)
-                .opacity(playerCoordinate == nil ? 0.5 : 1)
-                Button {
-                    showCamera = true
-                } label: {
-                    Label("Record", systemImage: "video.fill")
-                        .font(.system(.subheadline, design: .rounded, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, minHeight: 54)
-                        .background(OverParTheme.forest.opacity(0.96), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-                .buttonStyle(.plain)
+            Button {
+                logOrFinishShot()
+            } label: {
+                Label(
+                    playerCoordinate == nil
+                        ? "Set position first"
+                        : pendingShot == nil ? "Log shot" : "Finish shot",
+                    systemImage: pendingShot == nil ? "location.north.fill" : "checkmark.circle.fill"
+                )
+                .font(.system(.subheadline, design: .rounded, weight: .bold))
+                .foregroundStyle(OverParTheme.forestDark)
+                .frame(maxWidth: .infinity, minHeight: 54)
+                .background(Color.white.opacity(0.5), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.8), lineWidth: 0.8))
             }
+            .buttonStyle(.plain)
+            .disabled(playerCoordinate == nil)
+            .opacity(playerCoordinate == nil ? 0.5 : 1)
             scoreControls(round: round)
         }
         .padding(14)
@@ -1556,12 +1559,6 @@ struct PenaltySheet: View {
             }
         }
         .disabled(disabled)
-    }
-}
-
-struct ShotCameraView: View {
-    var body: some View {
-        LiveShotTracerCameraView()
     }
 }
 

@@ -4,6 +4,8 @@
 **Status:** Approved pre-development design plan  
 **Design direction:** Friendly clubhouse
 
+> **Scope update — 12 August 2026:** The shipping navigation is **Home, Play, Range and Profile**. Gallery, Record Shot, tracer editing and camera/video settings are removed. Later references to those surfaces are superseded design history.
+
 ## 1. Product feeling
 
 OverPar should feel welcoming rather than elite, clean rather than clinical, playful rather than childish, and calm during a round. The visual idea is **friendly clubhouse**: generous white space, warm rounded cards, deep golf green, soft mint feedback, friendly typography and restrained physical motion.

@@ -4,6 +4,8 @@
 **Purpose:** Product and technical research for later use in OverPar  
 **Scope:** Smartphone golf GPS/rangefinder apps and golf shot-tracer apps, with particular attention to Big Wedge's **Wedge** app and **SmoothSwing**
 
+> **Product decision — 12 August 2026:** OverPar no longer includes visual shot tracing, camera shot recording or Gallery. Tracer material below is retained only as historical research and must not be treated as implementation scope. GPS shot logging remains in scope.
+
 > Pricing and feature gates change frequently and vary by country/app store. Prices below are the public prices found on the research date, normally in USD unless stated otherwise. “Free” means that a useful free tier exists, not necessarily that every feature is free.
 
 ## Executive summary

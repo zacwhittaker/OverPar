@@ -1,0 +1,80 @@
+{
+  "source": "/Users/zac/Documents/GitHub/OverPar/OverParWatch/WatchDistanceView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Hole %lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "—",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Raw distance",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld %@ to green reference",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "yds",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "m",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start a round on iPhone",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 80
+        }
+      }
+    ]
+  },
+  "version": 1
+}

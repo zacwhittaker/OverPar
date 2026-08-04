@@ -16,12 +16,26 @@
 		A10000000000000000000007 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* MainTabView.swift */; };
 		A10000000000000000000008 /* CourseViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* CourseViews.swift */; };
 		A10000000000000000000009 /* RoundViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* RoundViews.swift */; };
-		A1000000000000000000000A /* RangeGalleryProfileViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* RangeGalleryProfileViews.swift */; };
+		A1000000000000000000000A /* RangeProfileViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* RangeProfileViews.swift */; };
 		A1000000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* Assets.xcassets */; };
 		A1000000000000000000000C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* PrivacyInfo.xcprivacy */; };
 		A1000000000000000000000D /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000002 /* GoogleMaps */; };
-		A1000000000000000000000E /* LiveShotTracer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* LiveShotTracer.swift */; };
+		AC10000000000000000000001 /* WatchRoundSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC20000000000000000000001 /* WatchRoundSync.swift */; };
+		AC10000000000000000000002 /* OverParWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC20000000000000000000002 /* OverParWatchApp.swift */; };
+		AC10000000000000000000003 /* WatchRoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC20000000000000000000003 /* WatchRoundService.swift */; };
+		AC10000000000000000000004 /* WatchDistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC20000000000000000000004 /* WatchDistanceView.swift */; };
+		AC10000000000000000000005 /* OverPar Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AC20000000000000000000006 /* OverPar Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AC0100000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A60000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AC50000000000000000000001;
+			remoteInfo = "OverPar Watch App";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A20000000000000000000001 /* OverParApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverParApp.swift; sourceTree = "<group>"; };
@@ -33,14 +47,19 @@
 		A20000000000000000000007 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* CourseViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseViews.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* RoundViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundViews.swift; sourceTree = "<group>"; };
-		A2000000000000000000000A /* RangeGalleryProfileViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeGalleryProfileViews.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* RangeProfileViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeProfileViews.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000000000000000000000C /* OverPar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OverPar.entitlements; sourceTree = "<group>"; };
 		A2000000000000000000000D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A2000000000000000000000E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A2000000000000000000000F /* OverPar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OverPar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000010 /* ShippingConfiguration.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ShippingConfiguration.xcconfig; sourceTree = "<group>"; };
-		A20000000000000000000011 /* LiveShotTracer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveShotTracer.swift; sourceTree = "<group>"; };
+		AC20000000000000000000001 /* WatchRoundSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRoundSync.swift; sourceTree = "<group>"; };
+		AC20000000000000000000002 /* OverParWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverParWatchApp.swift; sourceTree = "<group>"; };
+		AC20000000000000000000003 /* WatchRoundService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRoundService.swift; sourceTree = "<group>"; };
+		AC20000000000000000000004 /* WatchDistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDistanceView.swift; sourceTree = "<group>"; };
+		AC20000000000000000000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AC20000000000000000000006 /* OverPar Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OverPar Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +71,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AC30000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -59,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000002 /* OverPar */,
+				AC40000000000000000000001 /* OverParWatch */,
 				A40000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -75,21 +96,28 @@
 				A20000000000000000000007 /* MainTabView.swift */,
 				A20000000000000000000008 /* CourseViews.swift */,
 				A20000000000000000000009 /* RoundViews.swift */,
-				A2000000000000000000000A /* RangeGalleryProfileViews.swift */,
-				A20000000000000000000011 /* LiveShotTracer.swift */,
+				A2000000000000000000000A /* RangeProfileViews.swift */,
 				A2000000000000000000000D /* Assets.xcassets */,
 				A2000000000000000000000E /* PrivacyInfo.xcprivacy */,
 				A2000000000000000000000B /* Info.plist */,
 				A2000000000000000000000C /* OverPar.entitlements */,
 				A20000000000000000000010 /* ShippingConfiguration.xcconfig */,
+				AC20000000000000000000001 /* WatchRoundSync.swift */,
 			);
 			path = OverPar;
+			sourceTree = "<group>";
+		};
+		AC40000000000000000000001 /* OverParWatch */ = {
+			isa = PBXGroup;
+			children = (AC20000000000000000000002, AC20000000000000000000003, AC20000000000000000000004, AC20000000000000000000005, );
+			path = OverParWatch;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				A2000000000000000000000F /* OverPar.app */,
+				AC20000000000000000000006 /* OverPar Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -104,10 +132,12 @@
 				A70000000000000000000001 /* Sources */,
 				A30000000000000000000001 /* Frameworks */,
 				A70000000000000000000002 /* Resources */,
+				AC70000000000000000000003 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AC0100000000000000000002 /* PBXTargetDependency */,
 			);
 			name = OverPar;
 			packageProductDependencies = (
@@ -115,6 +145,18 @@
 			);
 			productName = OverPar;
 			productReference = A2000000000000000000000F /* OverPar.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AC50000000000000000000001 /* OverPar Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC90000000000000000000001;
+			buildPhases = (AC70000000000000000000001, AC30000000000000000000001, AC70000000000000000000002, );
+			buildRules = ();
+			dependencies = ();
+			name = "OverPar Watch App";
+			packageProductDependencies = ();
+			productName = "OverPar Watch App";
+			productReference = AC20000000000000000000006;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -130,6 +172,7 @@
 					A50000000000000000000001 = {
 						CreatedOnToolsVersion = 16.0;
 					};
+					AC50000000000000000000001 = { CreatedOnToolsVersion = 16.0; };
 				};
 			};
 			buildConfigurationList = A90000000000000000000001 /* Build configuration list for PBXProject "OverPar" */;
@@ -149,6 +192,7 @@
 			projectRoot = "";
 			targets = (
 				A50000000000000000000001 /* OverPar */,
+				AC50000000000000000000001 /* OverPar Watch App */,
 			);
 		};
 /* End PBXProject section */
@@ -163,6 +207,8 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AC70000000000000000000002 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		AC70000000000000000000003 /* Embed Watch Content */ = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = "$(CONTENTS_FOLDER_PATH)/Watch"; dstSubfolderSpec = 16; files = (AC10000000000000000000005, ); name = "Embed Watch Content"; runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -179,12 +225,21 @@
 				A10000000000000000000007 /* MainTabView.swift in Sources */,
 				A10000000000000000000008 /* CourseViews.swift in Sources */,
 				A10000000000000000000009 /* RoundViews.swift in Sources */,
-				A1000000000000000000000A /* RangeGalleryProfileViews.swift in Sources */,
-				A1000000000000000000000E /* LiveShotTracer.swift in Sources */,
+				A1000000000000000000000A /* RangeProfileViews.swift in Sources */,
+				AC10000000000000000000001 /* WatchRoundSync.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AC70000000000000000000001 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AC10000000000000000000002, AC10000000000000000000003, AC10000000000000000000004, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AC0100000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AC50000000000000000000001 /* OverPar Watch App */;
+			targetProxy = AC0100000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A80000000000000000000001 /* Debug */ = {
@@ -235,7 +290,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OverPar/OverPar.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = YSFC9459UY;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OverPar/Info.plist;
@@ -262,7 +317,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OverPar/OverPar.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = YSFC9459UY;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OverPar/Info.plist;
@@ -281,6 +336,8 @@
 			};
 			name = Release;
 		};
+		AC80000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; baseConfigurationReference = A20000000000000000000010 /* ShippingConfiguration.xcconfig */; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 17; DEVELOPMENT_TEAM = YSFC9459UY; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = OverParWatch/Info.plist; MARKETING_VERSION = 1.0.0; PRODUCT_BUNDLE_IDENTIFIER = "$(OVERPAR_BUNDLE_IDENTIFIER).watchkitapp"; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 4; WATCHOS_DEPLOYMENT_TARGET = 10.0; }; name = Debug; };
+		AC80000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; baseConfigurationReference = A20000000000000000000010 /* ShippingConfiguration.xcconfig */; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 17; DEVELOPMENT_TEAM = YSFC9459UY; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = OverParWatch/Info.plist; MARKETING_VERSION = 1.0.0; PRODUCT_BUNDLE_IDENTIFIER = "$(OVERPAR_BUNDLE_IDENTIFIER).watchkitapp"; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = watchos; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "watchos watchsimulator"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 4; VALIDATE_PRODUCT = YES; WATCHOS_DEPLOYMENT_TARGET = 10.0; }; name = Release; };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -302,6 +359,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		AC90000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (AC80000000000000000000001, AC80000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */

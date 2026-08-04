@@ -1,6 +1,6 @@
 # OverPar for iOS
 
-OverPar is a golf app with built-in GPS and shot tracing. Release 1.0 is a native SwiftUI iPhone application. Open [`OverPar.xcodeproj`](OverPar.xcodeproj) in Xcode.
+OverPar is a community-powered golf GPS and scoring app. Release 1.0 is a native SwiftUI iPhone application. Open [`OverPar.xcodeproj`](OverPar.xcodeproj) in Xcode.
 
 ## Requirements
 
@@ -21,19 +21,16 @@ The current bundle identifier is `com.zacwhittaker.overpar`. Change it before si
 
 ## Native implementation
 
-- SwiftUI application lifecycle and five-tab navigation
+- SwiftUI application lifecycle and four-tab navigation
 - Google satellite hole logging with a keyless Apple fallback and interactive tee/green-reference placement
 - Core Location foreground permission, nearest-course seam and stable multi-sample GPS capture
-- Offline-first atomic JSON persistence for courses, active rounds, shots, range hits and Gallery metadata
-- Native fixed-camera shot capture with golfer alignment, live white-ball tracing and private source-video preservation
+- Offline-first atomic JSON persistence for courses, active rounds, GPS shots and range hits
 - Course revisions pinned into rounds
 - Separated shot direction, ball flight, strike quality and finishing lie
 - Rules-aware out-of-bounds/lost-ball relief
 - Driving Range club averages and recommendation inputs
 - Profile, Settings, privacy declarations and Release 1.0 credits
-- Supabase/PostGIS migration with Row Level Security and private Storage policies
-
-The live tracer analyses consecutive camera frames, renders accepted white-ball observations during capture, stores observed versus extrapolated trace metadata and preserves the source video. It does not claim measured carry, apex, spin or full 3D flight. Gallery clips can be played and permanently removed with confirmation.
+- Supabase/PostGIS migration with Row Level Security
 
 ## Backend setup
 

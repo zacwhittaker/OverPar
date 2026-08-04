@@ -4,7 +4,11 @@
 
 This file is the durable instruction set for every coding agent working in the OverPar repository.
 
-OverPar is a community-powered golf application combining permanent user-created golf courses, satellite/live-GPS course mapping, GPS rangefinding, scoring, social rounds, shot logging, personalised golf statistics, plays-like club assistance and visual golf-shot tracing.
+OverPar is a community-powered golf application combining permanent user-created golf courses, satellite/live-GPS course mapping, GPS rangefinding, scoring, social rounds, GPS shot logging, personalised golf statistics and plays-like club assistance.
+
+## Product scope decision — 12 August 2026
+
+Visual shot tracing, camera-based shot recording and Gallery are removed from OverPar and are not shipping. Do not restore tracer models, capture UI, video persistence, Gallery navigation, media storage or related camera/microphone permissions unless the user explicitly reverses this decision. GPS **Log Shot** remains in scope and must stay technically and linguistically separate from airborne carry or a curved ball path.
 
 Treat the repository documentation named below as the project's product and technical brain. Do not reduce OverPar to a generic scorecard, map demo or manually drawn video effect.
 
@@ -20,7 +24,7 @@ Before planning an implementation, creating scaffolding, installing dependencies
 6. Read [`planning/ideal-course-data-and-creation.md`](planning/ideal-course-data-and-creation.md) completely.
 7. Read [`planning/profile-system.md`](planning/profile-system.md) completely.
 8. Read [`planning/driving-range-and-club-recommendations.md`](planning/driving-range-and-club-recommendations.md) completely.
-9. Read [`planning/round-companion-and-gallery.md`](planning/round-companion-and-gallery.md) completely.
+9. Read [`planning/round-companion-and-gallery.md`](planning/round-companion-and-gallery.md) completely, applying the 12 August 2026 removal decision above wherever it conflicts.
 10. Read [`planning/interface-design-system.md`](planning/interface-design-system.md) completely.
 11. For every interface, motion, branding, onboarding, screenshot or visual-polish task, read [`planning/design-review-learnings.md`](planning/design-review-learnings.md) completely.
 12. Inspect the existing repository, current architecture, configuration and relevant tests.
@@ -131,7 +135,7 @@ The user has now supplied the club-distance feature. [`planning/driving-range-an
 
 This authorisation does not extend to handicap, score, round or other performance-statistic UI.
 
-### Round companion and Gallery authority
+### Round companion authority
 
 [`planning/round-companion-and-gallery.md`](planning/round-companion-and-gallery.md) defines:
 
@@ -143,7 +147,7 @@ This authorisation does not extend to handicap, score, round or other performanc
 - hole/round completion, offline recovery and GPS shutdown;
 - the private-by-default **Gallery** page, media linkage and deletion rules.
 
-Use it as the screen-flow and data-lifecycle authority for playing a round and managing recorded shot videos. Recorded shot media must appear in Gallery without coupling round completion to tracer processing.
+Use it as the screen-flow and data-lifecycle authority for course preview, GPS shot logging, scoring, offline recovery and round completion. Its Record Shot, tracer, recorded-media and Gallery sections are retired by the 12 August 2026 scope decision.
 
 When logging shot results, keep target-relative direction, ball-flight shape, strike quality and finishing lie separate. Lost/out-of-bounds defaults to stroke-and-distance (+1 at the previous position); Model Local Rule E-5 is +2 when applicable. A nearby +1 drop is permitted only as an explicitly non-conforming casual-round rule and is disabled in rules-compliant mode.
 
@@ -154,7 +158,7 @@ When logging shot results, keep target-relative direction, ball-flight shape, st
 - the friendly-clubhouse visual direction;
 - white/soft-white surfaces and deep forest-green tokens;
 - Nunito Sans typography and rounded components;
-- Home, Play, Gallery, Range and Profile navigation;
+- Home, Play, Range and Profile navigation;
 - native iOS Liquid Glass boundaries and platform fallbacks;
 - Profile and Settings information architecture;
 - component, motion, haptic, accessibility and outdoor-use requirements.
@@ -361,6 +365,7 @@ Do not represent a smooth fitted spline as proof that every part of the ball fli
 
 ### While changing code
 
+- Increment `CURRENT_PROJECT_VERSION` for every user-facing application update. The Settings About section must display the live `CFBundleShortVersionString` and `CFBundleVersion` values rather than hard-coded release copy.
 - Keep source, migrations, policies and tests in the same task where practical.
 - Use strict typing.
 - Make state transitions explicit.

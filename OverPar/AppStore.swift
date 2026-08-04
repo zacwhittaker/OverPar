@@ -31,19 +31,26 @@ private struct OpenMeteoPlayingResponse: Decodable {
     let daily: Daily
 }
 
+private actor PersistenceWriter {
+    func write(_ data: Data, to destination: URL) {
+        try? data.write(to: destination, options: .atomic)
+    }
+}
+
 @MainActor
 final class AppStore: ObservableObject {
     @Published var profile: UserProfile { didSet { persist() } }
     @Published var courses: [GolfCourse] { didSet { persist() } }
     @Published var clubs: [GolfClub] { didSet { persist() } }
     @Published var rangeHits: [RangeHit] { didSet { persist() } }
-    @Published var gallery: [GalleryItem] { didSet { persist() } }
     @Published var activeRound: ActiveRound? { didSet { persist() } }
     @Published var completedRounds: [CompletedRound] { didSet { persist() } }
     @Published private(set) var playingConditions: PlayingConditions?
 
     private let saveURL: URL
+    private let persistenceWriter = PersistenceWriter()
     private var isLoading = true
+    private var persistenceTask: Task<Void, Never>?
 
     init() {
         let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -57,26 +64,23 @@ final class AppStore: ObservableObject {
             courses = saved.courses
             clubs = saved.clubs
             rangeHits = saved.rangeHits
-            gallery = saved.gallery
             activeRound = saved.activeRound
             completedRounds = saved.completedRounds ?? []
             playingConditions = nil
             removeReleaseOneDemoHitsIfNeeded()
             removeReleaseOneDemoCourseIfNeeded()
-            normalizeStoredCourseCoversIfNeeded()
         } else {
             let seed = Self.seedData()
             profile = seed.profile
             courses = seed.courses
             clubs = seed.clubs
             rangeHits = seed.rangeHits
-            gallery = seed.gallery
             activeRound = nil
             completedRounds = seed.completedRounds ?? []
             playingConditions = nil
         }
         isLoading = false
-        persist()
+        scheduleCourseCoverNormalization()
     }
 
     var activeBag: [GolfClub] { clubs.filter(\.isActive) }
@@ -104,6 +108,65 @@ final class AppStore: ObservableObject {
         )
         course.coverPhotoFilename = saveCourseCover(coverPhotoData, courseID: course.id)
         courses.append(course)
+    }
+
+    func exportCourseData(_ course: GolfCourse) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        return try encoder.encode(CourseTransferPackage(course: course))
+    }
+
+    func importCourseData(_ data: Data) throws -> CourseImportResult {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let package = try decoder.decode(CourseTransferPackage.self, from: data)
+        guard package.formatVersion == CourseTransferPackage.currentFormatVersion else {
+            throw CourseTransferError.unsupportedFormat
+        }
+
+        var course = package.course
+        try validateImportedCourse(course)
+        if let existing = courses.first(where: { $0.id == course.id }) {
+            return .alreadyExists(existing.name)
+        }
+
+        course.isVerified = false
+        course.isSaved = true
+        course.coverPhotoFilename = nil
+        course.createdByCurrentUser = false
+        courses.append(course)
+        return .imported(course)
+    }
+
+    private func validateImportedCourse(_ course: GolfCourse) throws {
+        let name = course.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty, name.count <= 120 else {
+            throw CourseTransferError.invalidCourse("the course name is missing or too long")
+        }
+        let holes = course.currentRevision.holes
+        guard (1...36).contains(holes.count) else {
+            throw CourseTransferError.invalidCourse("the hole count must be between 1 and 36")
+        }
+        guard Set(holes.map(\.number)).count == holes.count,
+              holes.allSatisfy({ (1...holes.count).contains($0.number) }) else {
+            throw CourseTransferError.invalidCourse("hole numbers must be unique and consecutive")
+        }
+        guard holes.allSatisfy({ (2...7).contains($0.par) }) else {
+            throw CourseTransferError.invalidCourse("every hole needs a valid par")
+        }
+        guard holes.allSatisfy({ hole in
+            guard let tee = hole.tee, let green = hole.greenReference else { return false }
+            return (-90...90).contains(tee.latitude)
+                && (-180...180).contains(tee.longitude)
+                && (-90...90).contains(green.latitude)
+                && (-180...180).contains(green.longitude)
+        }) else {
+            throw CourseTransferError.invalidCourse("every hole needs valid tee and green GPS coordinates")
+        }
+        guard (1...3).contains(course.loopCount) else {
+            throw CourseTransferError.invalidCourse("the layout loop count is invalid")
+        }
     }
 
     func updateCourse(
@@ -784,54 +847,6 @@ final class AppStore: ObservableObject {
         rangeHits.removeAll { deletedIDs.contains($0.clubID) }
     }
 
-    func addGalleryVideo(
-        filename: String,
-        courseName: String?,
-        hole: Int?,
-        tracePoints: [GalleryItem.TracePoint] = [],
-        observedPointCount: Int = 0
-    ) {
-        let status: String
-        if observedPointCount >= 3 {
-            status = "Live trace ready"
-        } else {
-            status = "Original saved · trace not found"
-        }
-        gallery.insert(
-            GalleryItem(
-                title: "Recorded shot",
-                localVideoFilename: filename,
-                courseName: courseName,
-                holeNumber: hole,
-                tracerStatus: status,
-                tracePoints: tracePoints,
-                observedPointCount: observedPointCount
-            ),
-            at: 0
-        )
-    }
-
-    @discardableResult
-    func deleteGalleryItem(id: UUID) -> Bool {
-        guard let index = gallery.firstIndex(where: { $0.id == id }) else { return false }
-        let item = gallery[index]
-        if let filename = item.localVideoFilename {
-            let safeFilename = URL(fileURLWithPath: filename).lastPathComponent
-            let videoURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("Gallery", isDirectory: true)
-                .appendingPathComponent(safeFilename)
-            if FileManager.default.fileExists(atPath: videoURL.path) {
-                do {
-                    try FileManager.default.removeItem(at: videoURL)
-                } catch {
-                    return false
-                }
-            }
-        }
-        gallery.remove(at: index)
-        return true
-    }
-
     private func statsInMetres(for club: GolfClub) -> Double? {
         let values = rangeHits.filter {
             $0.clubID == club.id && $0.kind == .carry && !$0.isMishit && !$0.isPartial
@@ -972,17 +987,35 @@ final class AppStore: ObservableObject {
 
     private func persist() {
         guard !isLoading else { return }
+        persistenceTask?.cancel()
+        persistenceTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            self?.writePersistenceSnapshot()
+        }
+    }
+
+    func flushPersistence() {
+        guard !isLoading else { return }
+        persistenceTask?.cancel()
+        persistenceTask = nil
+        writePersistenceSnapshot()
+    }
+
+    private func writePersistenceSnapshot() {
         let value = AppData(
             profile: profile,
             courses: courses,
             clubs: clubs,
             rangeHits: rangeHits,
-            gallery: gallery,
             activeRound: activeRound,
             completedRounds: completedRounds
         )
         guard let data = try? JSONEncoder().encode(value) else { return }
-        try? data.write(to: saveURL, options: .atomic)
+        let destination = saveURL
+        Task(priority: .utility) { [persistenceWriter] in
+            await persistenceWriter.write(data, to: destination)
+        }
     }
 
     private func removeReleaseOneDemoHitsIfNeeded() {
@@ -1013,16 +1046,22 @@ final class AppStore: ObservableObject {
         UserDefaults.standard.set(true, forKey: migrationKey)
     }
 
-    private func normalizeStoredCourseCoversIfNeeded() {
-        for course in courses {
-            guard let filename = course.coverPhotoFilename else { continue }
-            let url = courseCoverDirectory.appendingPathComponent(filename)
-            guard let data = try? Data(contentsOf: url),
-                  let image = UIImage(data: data),
-                  !CourseCoverProcessor.hasExpectedPixelSize(image),
-                  let normalized = CourseCoverProcessor.prepare(data)
-            else { continue }
-            try? normalized.write(to: url, options: .atomic)
+    private func scheduleCourseCoverNormalization() {
+        let migrationKey = "overpar.migrations.normalizedCourseCoversV1"
+        guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }
+        let filenames = courses.compactMap(\.coverPhotoFilename)
+        let directory = courseCoverDirectory
+        Task.detached(priority: .utility) {
+            for filename in filenames {
+                let url = directory.appendingPathComponent(filename)
+                guard let data = try? Data(contentsOf: url),
+                      let image = UIImage(data: data),
+                      !CourseCoverProcessor.hasExpectedPixelSize(image),
+                      let normalized = CourseCoverProcessor.prepare(data)
+                else { continue }
+                try? normalized.write(to: url, options: .atomic)
+            }
+            UserDefaults.standard.set(true, forKey: migrationKey)
         }
     }
 
@@ -1039,7 +1078,6 @@ final class AppStore: ObservableObject {
             courses: [],
             clubs: clubs,
             rangeHits: [],
-            gallery: [],
             activeRound: nil,
             completedRounds: []
         )

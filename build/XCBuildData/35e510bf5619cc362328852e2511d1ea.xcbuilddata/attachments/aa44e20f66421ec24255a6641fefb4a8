@@ -1,0 +1,39 @@
+{
+  "" : {
+    "diagnostics" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverPar Watch App-primary.dia",
+    "emit-module-dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverPar Watch App-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverPar Watch App-primary-emit-module.dia",
+    "pch" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverPar Watch App-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverPar Watch App-primary.swiftdeps"
+  },
+  "/Users/zac/Documents/GitHub/OverPar/OverParWatch/OverParWatchApp.swift" : {
+    "const-values" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp.swiftconstvalues",
+    "dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp.d",
+    "diagnostics" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp.dia",
+    "index-unit-output-path" : "/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp.o",
+    "llvm-bc" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp.bc",
+    "object" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp.o",
+    "swift-dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp.swiftdeps",
+    "swiftmodule" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/OverParWatchApp~partial.swiftmodule"
+  },
+  "/Users/zac/Documents/GitHub/OverPar/OverParWatch/WatchDistanceView.swift" : {
+    "const-values" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView.swiftconstvalues",
+    "dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView.d",
+    "diagnostics" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView.dia",
+    "index-unit-output-path" : "/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView.o",
+    "llvm-bc" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView.bc",
+    "object" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView.o",
+    "swift-dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView.swiftdeps",
+    "swiftmodule" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchDistanceView~partial.swiftmodule"
+  },
+  "/Users/zac/Documents/GitHub/OverPar/OverParWatch/WatchRoundService.swift" : {
+    "const-values" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService.swiftconstvalues",
+    "dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService.d",
+    "diagnostics" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService.dia",
+    "index-unit-output-path" : "/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService.o",
+    "llvm-bc" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService.bc",
+    "object" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService.o",
+    "swift-dependencies" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService.swiftdeps",
+    "swiftmodule" : "/Users/zac/Documents/GitHub/OverPar/build/OverPar.build/Debug-watchsimulator/OverPar Watch App.build/Objects-normal/arm64/WatchRoundService~partial.swiftmodule"
+  }
+}

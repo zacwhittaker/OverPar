@@ -4,6 +4,8 @@
 **Status:** Approved product-flow specification  
 **Related:** [`overpar-app-build-blueprint.md`](overpar-app-build-blueprint.md), [`driving-range-and-club-recommendations.md`](driving-range-and-club-recommendations.md), and [`../research/golf-gps-and-shot-tracking-apps.md`](../research/golf-gps-and-shot-tracking-apps.md)
 
+> **Scope update — 12 August 2026:** Visual shot tracing, camera-based Record Shot, recorded-shot media and Gallery are removed and must not ship. The remaining course preview, Play, GPS Log Shot, scoring, relief, offline recovery and round-completion requirements stay authoritative. Any later section describing Record Shot, tracer media or Gallery is retained only as superseded design history.
+
 ## 1. Product decision
 
 A golfer should be able to find a saved course and press **Play** with very little setup. They may optionally preview the entire course over satellite imagery first.

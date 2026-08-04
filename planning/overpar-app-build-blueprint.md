@@ -4,6 +4,8 @@
 **Status:** Pre-development product and technical plan  
 **Companion research:** [`research/golf-gps-and-shot-tracking-apps.md`](../research/golf-gps-and-shot-tracking-apps.md)
 
+> **Scope update — 12 August 2026:** Visual shot tracing, camera-based shot recording and Gallery are removed from OverPar and are not release or roadmap features. GPS Log Shot remains. Any tracer/Gallery material later in this document is superseded design history.
+
 ## 1. Product vision
 
 OverPar will be a community-powered golf companion combining:

@@ -3,6 +3,7 @@ import MapKit
 import PhotosUI
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 private enum TerrainElevationError: LocalizedError {
     case incompleteHole
@@ -136,6 +137,8 @@ struct ResearchPlayView: View {
     @EnvironmentObject private var location: LocationService
     @State private var query = ""
     @State private var showCreator = false
+    @State private var showImporter = false
+    @State private var importMessage: String?
 
     private var courses: [GolfCourse] {
         guard !query.isEmpty else { return store.courses }
@@ -178,10 +181,6 @@ struct ResearchPlayView: View {
                     Text(query.isEmpty ? "NEARBY COURSES" : "SEARCH RESULTS")
                         .font(.caption2.bold()).tracking(1.1)
                     Spacer()
-                    Button { showCreator = true } label: {
-                        Label("Add course", systemImage: "plus")
-                    }
-                    .font(.caption.bold())
                 }
                 .foregroundStyle(OverParTheme.forest)
                 .padding(.top, 30)
@@ -241,111 +240,86 @@ struct ResearchPlayView: View {
                             .font(.title2.bold())
                         Text("Search by course, city or postcode—or map the first one for your community.")
                             .foregroundStyle(OverParTheme.secondary)
-                        Button("Add a course") { showCreator = true }
-                            .buttonStyle(PrimaryButtonStyle())
                     }
                     .padding(.vertical, 34)
                 }
+
+                VStack(spacing: 12) {
+                    Button {
+                        showCreator = true
+                    } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "map.badge.plus")
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Create a course")
+                                    .font(.headline)
+                                Text("Map every tee and green for the community")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.78))
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.right")
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity, minHeight: 78)
+                        .background(OverParTheme.forest, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        showImporter = true
+                    } label: {
+                        Label("Import a course", systemImage: "square.and.arrow.down")
+                            .font(.headline)
+                            .foregroundStyle(OverParTheme.forestDark)
+                            .frame(maxWidth: .infinity, minHeight: 56)
+                            .background(OverParTheme.secondarySurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 18).stroke(OverParTheme.line))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 32)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 28)
         }
         .navigationBarHidden(true)
         .sheet(isPresented: $showCreator) { CourseCreatorView() }
+        .fileImporter(
+            isPresented: $showImporter,
+            allowedContentTypes: [.json, .data],
+            allowsMultipleSelection: false
+        ) { result in
+            importCourse(from: result)
+        }
+        .alert("Course import", isPresented: Binding(
+            get: { importMessage != nil },
+            set: { if !$0 { importMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { importMessage = nil }
+        } message: {
+            Text(importMessage ?? "")
+        }
         .overParPage()
     }
-}
 
-struct PlayView: View {
-    @EnvironmentObject private var store: AppStore
-    @EnvironmentObject private var location: LocationService
-    @State private var query = ""
-    @State private var showCreator = false
-
-    private var matches: [GolfCourse] {
-        guard !query.isEmpty else { return store.courses }
-        return store.courses.filter {
-            [$0.name, $0.facilityName, $0.city, $0.postcode]
-                .contains { $0.localizedCaseInsensitiveContains(query) }
-        }
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("PLAY")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .tracking(1.4)
-                        .foregroundStyle(OverParTheme.secondaryGreen)
-                    Text("Find your next\nfavourite course.")
-                        .font(.system(size: 34, weight: .heavy, design: .rounded))
-                        .tracking(-0.8)
-                        .lineSpacing(-2)
-                    Text("Community mapped. Ready whenever you are.")
-                        .foregroundStyle(OverParTheme.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(OverParTheme.forest)
-                    TextField("Course, city or postcode", text: $query)
-                        .textInputAutocapitalization(.words)
-                    if !query.isEmpty {
-                        Button { query = "" } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(OverParTheme.tertiary)
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-                .frame(minHeight: 56)
-                .background(OverParTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(OverParTheme.line))
-                .shadow(color: OverParTheme.Shadow.small.color, radius: OverParTheme.Shadow.small.radius, y: OverParTheme.Shadow.small.y)
-                HStack {
-                    Button {
-                        location.requestOneShotLocation()
-                    } label: {
-                        Label("Use my location", systemImage: "location.fill")
-                    }
-                    .buttonStyle(SecondaryButtonStyle())
-                    Spacer()
-                    Button {
-                        showCreator = true
-                    } label: {
-                        Label("Add a course", systemImage: "plus")
-                    }
-                    .buttonStyle(PrimaryButtonStyle())
-                }
-                SectionHeading(
-                    eyebrow: query.isEmpty ? "Near you" : "Search results",
-                    title: query.isEmpty ? "Courses to play" : "\(matches.count) \(matches.count == 1 ? "course" : "courses")"
-                )
-                ForEach(matches) { course in
-                    CourseHeroCard(course: course)
-                }
-                if matches.isEmpty {
-                    OverParEmptyState(
-                        symbol: "map",
-                        title: "No course found",
-                        message: "Try another name, city or postcode—or add it for the community."
-                    )
-                    Button("Add this course") { showCreator = true }
-                        .buttonStyle(PrimaryButtonStyle())
-                }
+    private func importCourse(from result: Result<[URL], Error>) {
+        do {
+            guard let url = try result.get().first else { return }
+            let hasAccess = url.startAccessingSecurityScopedResource()
+            defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
+            let data = try Data(contentsOf: url)
+            switch try store.importCourseData(data) {
+            case .imported(let course):
+                importMessage = "\(course.name) is ready to preview and play."
+            case .alreadyExists(let name):
+                importMessage = "\(name) is already in your courses, so nothing was overwritten."
             }
-            .padding(.horizontal, OverParTheme.Space.page)
-            .padding(.vertical, 16)
+        } catch {
+            importMessage = error.localizedDescription
         }
-        .navigationTitle("Play")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showCreator = true } label: { Image(systemName: "plus") }
-            }
-        }
-        .sheet(isPresented: $showCreator) { CourseCreatorView() }
-        .overParPage()
     }
 }
 
@@ -356,6 +330,7 @@ struct CourseOverviewView: View {
     @State private var showHoleEditor = false
     @State private var isUpdatingTerrain = false
     @State private var terrainError: String?
+    @State private var exportURL: URL?
 
     private var course: GolfCourse? {
         store.courses.first { $0.id == courseID }
@@ -372,9 +347,9 @@ struct CourseOverviewView: View {
                 }
                 .ignoresSafeArea(edges: .top)
                 .toolbar {
-                    if course.canCurrentUserEdit {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Menu {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            if course.canCurrentUserEdit {
                                 Button {
                                     showDetailsEditor = true
                                 } label: {
@@ -385,16 +360,21 @@ struct CourseOverviewView: View {
                                 } label: {
                                     Label("Edit holes", systemImage: "mappin.and.ellipse")
                                 }
-                            } label: {
-                                Image(systemName: "ellipsis")
-                                    .font(.headline)
-                                    .foregroundStyle(OverParTheme.forestDark)
-                                    .frame(width: 44, height: 44)
-                                    .background(.ultraThinMaterial, in: Circle())
-                                    .overlay(Circle().stroke(.white.opacity(0.65)))
                             }
-                            .accessibilityLabel("Course options")
+                            if let exportURL {
+                                ShareLink(item: exportURL) {
+                                    Label("Export course", systemImage: "square.and.arrow.up")
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.headline)
+                                .foregroundStyle(OverParTheme.forestDark)
+                                .frame(width: 44, height: 44)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .overlay(Circle().stroke(.white.opacity(0.65)))
                         }
+                        .accessibilityLabel("Course options")
                     }
                 }
                 .sheet(isPresented: $showDetailsEditor) {
@@ -402,6 +382,9 @@ struct CourseOverviewView: View {
                 }
                 .sheet(isPresented: $showHoleEditor) {
                     CourseCreatorView(editing: course, startsAtHoles: true)
+                }
+                .task(id: course.currentRevision.id) {
+                    exportURL = makeExportURL(for: course)
                 }
             } else {
                 ContentUnavailableView("Course unavailable", systemImage: "flag.slash")
@@ -417,6 +400,25 @@ struct CourseOverviewView: View {
             Text(terrainError ?? "Please try again.")
         }
         .overParPage()
+    }
+
+    private func makeExportURL(for course: GolfCourse) -> URL? {
+        guard let data = try? store.exportCourseData(course) else { return nil }
+        let baseName = course.name
+            .lowercased()
+            .replacingOccurrences(of: "[^a-z0-9]+", with: "-", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        let filename = "\(baseName.isEmpty ? "overpar-course" : baseName).overparcourse.json"
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("OverParCourseExports", isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let url = directory.appendingPathComponent(filename)
+            try data.write(to: url, options: .atomic)
+            return url
+        } catch {
+            return nil
+        }
     }
 
     private func hero(_ course: GolfCourse) -> some View {

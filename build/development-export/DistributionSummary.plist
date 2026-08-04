@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>OverPar.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>14</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>9D61E0F08E7CD08B9F7D525D88FC7E869EA78213</string>
+				<key>dateExpires</key>
+				<string>17/06/2027</string>
+				<key>type</key>
+				<string>Apple Development</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>YSFC9459UY.com.zacwhittaker.overpar</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>YSFC9459UY</string>
+				<key>get-task-allow</key>
+				<true/>
+			</dict>
+			<key>name</key>
+			<string>OverPar.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>2a20e4cb-ac6c-4b84-873a-a07e6740294f</string>
+				<key>dateExpires</key>
+				<string>17/08/2026</string>
+				<key>name</key>
+				<string>iOS Team Provisioning Profile: com.zacwhittaker.overpar</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>YSFC9459UY</string>
+				<key>name</key>
+				<string></string>
+			</dict>
+			<key>versionNumber</key>
+			<string>1.0.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>

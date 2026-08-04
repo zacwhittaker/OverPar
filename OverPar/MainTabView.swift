@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppTab: Hashable {
-    case home, play, gallery, range, profile
+    case home, play, range, profile
 }
 
 struct ResearchHomeView: View {
@@ -103,8 +103,6 @@ struct ResearchHomeView: View {
             HStack(spacing: 0) {
                 pulseMetric("\(store.completedRounds.count)", "Rounds")
                 Divider().frame(height: 48)
-                pulseMetric("\(store.gallery.count)", "Shot videos")
-                Divider().frame(height: 48)
                 pulseMetric("\(store.rangeHits.filter { !$0.isMishit }.count)", "Carries")
                 Divider().frame(height: 48)
                 pulseMetric("\(store.activeBag.count)", "Active clubs")
@@ -183,7 +181,6 @@ struct MainTabView: View {
         if let index = arguments.firstIndex(of: "-screenshotTab"), arguments.indices.contains(index + 1) {
             let tab: AppTab = switch arguments[index + 1].lowercased() {
             case "play": .play
-            case "gallery": .gallery
             case "range": .range
             case "profile": .profile
             default: .home
@@ -205,9 +202,6 @@ struct MainTabView: View {
             NavigationStack { ResearchPlayView() }
                 .tabItem { Label("Play", systemImage: "flag.fill") }
                 .tag(AppTab.play)
-            NavigationStack { GalleryView() }
-                .tabItem { Label("Gallery", systemImage: "photo.stack.fill") }
-                .tag(AppTab.gallery)
             NavigationStack { ResearchDrivingRangeView() }
                 .tabItem { Label("Range", systemImage: "scope") }
                 .tag(AppTab.range)
@@ -299,21 +293,17 @@ struct HomeView: View {
                 }
                 homeHero
 
-                if !store.completedRounds.isEmpty || !store.rangeHits.isEmpty || !store.gallery.isEmpty {
+                if !store.completedRounds.isEmpty || !store.rangeHits.isEmpty {
                     SectionHeading(eyebrow: "Your game", title: "At a glance")
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         summaryCard(value: "\(store.completedRounds.count)", label: "Rounds saved", symbol: "flag.checkered")
-                        summaryCard(value: "\(store.gallery.count)", label: "Private shots", symbol: "video.fill")
                         summaryCard(value: "\(store.rangeHits.filter { !$0.isMishit }.count)", label: "Range carries", symbol: "scope")
                         summaryCard(value: "\(store.activeBag.count)", label: "Clubs in bag", symbol: "figure.golf")
                     }
                 }
 
                 SectionHeading(eyebrow: "Quick start", title: "Your clubhouse")
-                HStack(spacing: 10) {
-                    quickCard("Range", "Dial in your bag", "scope") { selection = .range }
-                    quickCard("Gallery", "\(store.gallery.count) private clips", "photo.stack.fill") { selection = .gallery }
-                }
+                quickCard("Range", "Dial in your bag", "scope") { selection = .range }
 
                 if !store.courses.isEmpty {
                     SectionHeading(eyebrow: "Nearby", title: "More courses")

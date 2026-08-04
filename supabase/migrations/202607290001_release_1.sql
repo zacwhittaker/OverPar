@@ -5,7 +5,6 @@ create extension if not exists pg_trgm with schema extensions;
 
 create type public.course_state as enum ('draft', 'published', 'archived');
 create type public.profile_visibility as enum ('private', 'community');
-create type public.media_visibility as enum ('private', 'connections', 'community', 'unlisted');
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -154,19 +153,6 @@ create table public.shots (
   created_at timestamptz not null default now()
 );
 
-create table public.gallery_items (
-  id uuid primary key,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  round_id uuid references public.rounds(id) on delete set null,
-  shot_id uuid references public.shots(id) on delete set null,
-  private_storage_path text not null,
-  title text not null default 'Recorded shot',
-  tracer_metadata jsonb not null default '{}'::jsonb,
-  visibility public.media_visibility not null default 'private',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
 create or replace function public.nearby_courses(
   latitude double precision,
   longitude double precision,
@@ -225,7 +211,6 @@ alter table public.user_clubs enable row level security;
 alter table public.range_hits enable row level security;
 alter table public.rounds enable row level security;
 alter table public.shots enable row level security;
-alter table public.gallery_items enable row level security;
 
 create policy "community profiles readable" on public.profiles for select
 using (visibility = 'community' or id = auth.uid());
@@ -272,18 +257,4 @@ create policy "owners manage rounds" on public.rounds for all
 using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "owners manage shots" on public.shots for all
 using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "owners manage gallery" on public.gallery_items for all
-using (user_id = auth.uid()) with check (user_id = auth.uid());
-
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('private-gallery', 'private-gallery', false, 524288000, array['video/quicktime', 'video/mp4', 'image/jpeg', 'image/png'])
-on conflict (id) do nothing;
-
-create policy "gallery owner reads objects" on storage.objects for select
-to authenticated using (bucket_id = 'private-gallery' and (storage.foldername(name))[1] = auth.uid()::text);
-create policy "gallery owner inserts objects" on storage.objects for insert
-to authenticated with check (bucket_id = 'private-gallery' and (storage.foldername(name))[1] = auth.uid()::text);
-create policy "gallery owner deletes objects" on storage.objects for delete
-to authenticated using (bucket_id = 'private-gallery' and (storage.foldername(name))[1] = auth.uid()::text);
-
 commit;

@@ -17,9 +17,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>$(MARKETING_VERSION)</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>OVERPAR_SUPABASE_URL</key>
 	<string>$(OVERPAR_SUPABASE_URL)</string>
     <key>OVERPAR_SUPABASE_PUBLISHABLE_KEY</key>
@@ -51,11 +51,5 @@
     </array>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>OverPar uses your location while open to find nearby courses, measure honest device-to-target distances, and record fresh tee, green and shot positions.</string>
-    <key>NSCameraUsageDescription</key>
-    <string>OverPar uses the camera when you choose Record Shot so the original swing video can be saved privately and traced.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>OverPar records microphone audio as part of shot videos, which can help identify impact timing.</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>OverPar can import a shot video you choose into your private Gallery.</string>
 </dict>
 </plist>

@@ -622,7 +622,17 @@ Moderator adjustments create attributed captures/revisions. Never rewrite the co
 10. Field test and calibrate accuracy/distance warnings.
 11. Only then add richer tee sets, green polygons, hazards and daily pin features.
 
-## 16. Primary technical sources
+## 16. Course transfer decision — 12 August 2026
+
+- The Play page ends with a prominent `Create a course` banner and a separate `Import a course` action.
+- Every course options menu exposes `Export course`, including courses the current user cannot edit.
+- Export uses a versioned `.overparcourse.json` package containing provider-neutral course identity, the stable course ID, the exact current revision, hole pars, tee/green coordinates, loop metadata and saved terrain samples.
+- Device-local cover-photo filenames are excluded from transfer packages.
+- Import validates the format version, course identity, consecutive holes, pars and complete coordinate ranges before saving anything.
+- An imported course keeps its stable course and revision IDs, is marked community-sourced and immediately becomes available for preview and play.
+- Import never silently overwrites a course with the same stable ID.
+
+## 17. Primary technical sources
 
 - [Apple Core Location desired accuracy](https://developer.apple.com/documentation/corelocation/cllocationmanager/desiredaccuracy)
 - [Apple location accuracy values](https://developer.apple.com/documentation/corelocation/cllocationaccuracy)
