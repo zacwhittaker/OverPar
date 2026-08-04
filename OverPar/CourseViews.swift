@@ -639,7 +639,7 @@ private struct CourseDetailsEditorView: View {
                             if useDefaultCover {
                                 CourseCoverImage(course: nil)
                             } else if let coverPhotoData, let image = UIImage(data: coverPhotoData) {
-                                Image(uiImage: image).resizable().scaledToFill()
+                                CourseCoverArtwork(image: image)
                             } else {
                                 CourseCoverImage(course: course)
                             }
@@ -1532,7 +1532,7 @@ struct CourseCreatorView: View {
                     ZStack(alignment: .bottomLeading) {
                         Group {
                             if let coverPhotoData, let image = UIImage(data: coverPhotoData) {
-                                Image(uiImage: image).resizable().scaledToFill()
+                                CourseCoverArtwork(image: image)
                             } else if let editingCourseID,
                                       let course = store.courses.first(where: { $0.id == editingCourseID }) {
                                 CourseCoverImage(course: course)

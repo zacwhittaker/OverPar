@@ -1019,7 +1019,7 @@ final class AppStore: ObservableObject {
             let url = courseCoverDirectory.appendingPathComponent(filename)
             guard let data = try? Data(contentsOf: url),
                   let image = UIImage(data: data),
-                  image.size != CGSize(width: 1600, height: 900),
+                  !CourseCoverProcessor.hasExpectedPixelSize(image),
                   let normalized = CourseCoverProcessor.prepare(data)
             else { continue }
             try? normalized.write(to: url, options: .atomic)

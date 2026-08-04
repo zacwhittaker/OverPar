@@ -6,33 +6,50 @@ struct CourseCoverImage: View {
     let course: GolfCourse?
 
     var body: some View {
-        Group {
-            if let course,
-               let data = store.courseCoverData(for: course),
-               let image = UIImage(data: data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Image("CourseMorning")
-                    .resizable()
-                    .scaledToFill()
-            }
+        CourseCoverArtwork(image: resolvedImage)
+            .accessibilityHidden(true)
+    }
+
+    private var resolvedImage: UIImage {
+        if let course,
+           let data = store.courseCoverData(for: course),
+           let image = UIImage(data: data) {
+            return image
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
-        .accessibilityHidden(true)
+        return UIImage(named: CourseCoverProcessor.defaultAssetName) ?? UIImage()
+    }
+}
+
+struct CourseCoverArtwork: View {
+    let image: UIImage
+
+    var body: some View {
+        GeometryReader { proxy in
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .clipped()
+        }
     }
 }
 
 enum CourseCoverProcessor {
-    private static let outputSize = CGSize(width: 1600, height: 900)
+    static let defaultAssetName = "CourseMorning"
+
+    static var outputPixelSize: CGSize {
+        guard let cgImage = UIImage(named: defaultAssetName)?.cgImage else {
+            return CGSize(width: 1122, height: 1402)
+        }
+        return CGSize(width: cgImage.width, height: cgImage.height)
+    }
 
     static func prepare(_ data: Data) -> Data? {
         guard let image = UIImage(data: data), image.size.width > 0, image.size.height > 0 else {
             return nil
         }
 
+        let outputSize = outputPixelSize
         let scale = max(
             outputSize.width / image.size.width,
             outputSize.height / image.size.height
@@ -52,6 +69,11 @@ enum CourseCoverProcessor {
         return renderer.jpegData(withCompressionQuality: 0.84) { _ in
             image.draw(in: CGRect(origin: origin, size: drawnSize))
         }
+    }
+
+    static func hasExpectedPixelSize(_ image: UIImage) -> Bool {
+        guard let cgImage = image.cgImage else { return false }
+        return CGSize(width: cgImage.width, height: cgImage.height) == outputPixelSize
     }
 }
 
